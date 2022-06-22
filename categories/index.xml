@@ -2,10 +2,10 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Lamprey Labs</title>
-    <link>https://lampreylabs.com/categories/</link>
+    <link>https://winterknife.github.io/categories/</link>
     <description>Recent content in Categories on Lamprey Labs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <copyright>This work is licensed under the GNU General Public License v3.0</copyright><atom:link href="https://lampreylabs.com/categories/index.xml" rel="self" type="application/rss+xml" />
+    <copyright>This work is licensed under the GNU General Public License v3.0</copyright><atom:link href="https://winterknife.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>
