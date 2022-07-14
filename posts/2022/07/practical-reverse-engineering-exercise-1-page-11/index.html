@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:winterknife]">
+<meta name="description" content="Table of Contents  Question Answer  Question This function uses a combination SCAS and STOS to do its work. First, explain what is the type of the [EBP&#43;8] and [EBP&#43;C] in line 1 and 8, respectively. Next, explain what this snippet does.
+01: mov edi, [ebp &#43; 8] 02: mov edx, edi 03: xor eax, eax 04: or ecx, 0FFFFFFFFh 05: repne scasb 06: add ecx, 2 07: neg ecx 08: mov al, [ebp &#43; 0Ch] 09: mov edi, edx 10: rep stosb 11: mov eax, edx Answer [EBP &#43; 8h] appears to be a char buffer pointer/PCHAR(size = 4 bytes) since it is loaded into EDI register which is then implicitly used by scasb instruction with repne prefix as the memory operand address to compare for a particular byte value specified by AL register." />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/" />
+
+
+    <title>
+        
+            Practical Reverse Engineering - Exercise 1, Page 11 :: Lamprey Labs 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lampreylabs.com/main.ec5813d7f5ef5c707c6fe0e84133d038cc714ef28639df0a5bc50aa3b3697bab.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lampreylabs.com/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lampreylabs.com/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lampreylabs.com/favicon-16x16.png">
+    <link rel="manifest" href="https://lampreylabs.com/site.webmanifest">
+    <link rel="mask-icon" href="https://lampreylabs.com/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lampreylabs.com/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="Practical Reverse Engineering - Exercise 1, Page 11">
+<meta itemprop="description" content="Table of Contents  Question Answer  Question This function uses a combination SCAS and STOS to do its work. First, explain what is the type of the [EBP&#43;8] and [EBP&#43;C] in line 1 and 8, respectively. Next, explain what this snippet does.
+01: mov edi, [ebp &#43; 8] 02: mov edx, edi 03: xor eax, eax 04: or ecx, 0FFFFFFFFh 05: repne scasb 06: add ecx, 2 07: neg ecx 08: mov al, [ebp &#43; 0Ch] 09: mov edi, edx 10: rep stosb 11: mov eax, edx Answer [EBP &#43; 8h] appears to be a char buffer pointer/PCHAR(size = 4 bytes) since it is loaded into EDI register which is then implicitly used by scasb instruction with repne prefix as the memory operand address to compare for a particular byte value specified by AL register.">
+<meta itemprop="datePublished" content="2022-07-13T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-07-13T00:00:00+00:00" />
+<meta itemprop="wordCount" content="528">
+<meta itemprop="image" content="https://lampreylabs.com/"/>
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lampreylabs.com/"/>
+
+<meta name="twitter:title" content="Practical Reverse Engineering - Exercise 1, Page 11"/>
+<meta name="twitter:description" content="Table of Contents  Question Answer  Question This function uses a combination SCAS and STOS to do its work. First, explain what is the type of the [EBP&#43;8] and [EBP&#43;C] in line 1 and 8, respectively. Next, explain what this snippet does.
+01: mov edi, [ebp &#43; 8] 02: mov edx, edi 03: xor eax, eax 04: or ecx, 0FFFFFFFFh 05: repne scasb 06: add ecx, 2 07: neg ecx 08: mov al, [ebp &#43; 0Ch] 09: mov edi, edx 10: rep stosb 11: mov eax, edx Answer [EBP &#43; 8h] appears to be a char buffer pointer/PCHAR(size = 4 bytes) since it is loaded into EDI register which is then implicitly used by scasb instruction with repne prefix as the memory operand address to compare for a particular byte value specified by AL register."/>
+
+
+
+
+    <meta property="og:title" content="Practical Reverse Engineering - Exercise 1, Page 11" />
+<meta property="og:description" content="Table of Contents  Question Answer  Question This function uses a combination SCAS and STOS to do its work. First, explain what is the type of the [EBP&#43;8] and [EBP&#43;C] in line 1 and 8, respectively. Next, explain what this snippet does.
+01: mov edi, [ebp &#43; 8] 02: mov edx, edi 03: xor eax, eax 04: or ecx, 0FFFFFFFFh 05: repne scasb 06: add ecx, 2 07: neg ecx 08: mov al, [ebp &#43; 0Ch] 09: mov edi, edx 10: rep stosb 11: mov eax, edx Answer [EBP &#43; 8h] appears to be a char buffer pointer/PCHAR(size = 4 bytes) since it is loaded into EDI register which is then implicitly used by scasb instruction with repne prefix as the memory operand address to compare for a particular byte value specified by AL register." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/" />
+<meta property="og:image" content="https://lampreylabs.com/"/>
+<meta property="article:published_time" content="2022-07-13T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-07-13T00:00:00+00:00" />
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2022-07-13 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+        
+<script type="text/javascript" src="https://lampreylabs.com/js/theme.min.ecee69b9833f1e32d9e500849eca9563ddf1ce26f44cb14860a0f0bcb39152cf8f5026e01375dc2eba0ce52b35e9d7b6d836883121015abbc2c36e1debae73f6.js" integrity="sha512-7O5puYM/HjLZ5QCEnsqVY93xzib0TLFIYKDwvLORUs&#43;PUCbgE3XcLroM5Ss16de22DaIMSEBWrvCw24d665z9g=="></script>
+    </head>
+
+    
+        <body>
+    
+
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lampreylabs.com/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark"> </span>
+            <span class="logo__text">\\??\C:</span>
+            <span class="logo__cursor" style=
+                  "
+                   background-color:#d60000;
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lampreylabs.com/about/">About</a></li><li><a href="https://lampreylabs.com/posts/">Posts</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+
+    <link rel="stylesheet" href="https://lampreylabs.com/highlight/styles/github-dark.min.css">
+    <script src="https://lampreylabs.com/highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        3 minutes
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/">Practical Reverse Engineering - Exercise 1, Page 11</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#question">Question</a></li>
+<li><a href="#answer">Answer</a></li>
+</ul>
+<h2 id="question">Question</h2>
+<p>This function uses a combination <code>SCAS</code> and <code>STOS</code> to do its work. First, explain what is the type of the <code>[EBP+8]</code> and <code>[EBP+C]</code> in line 1 and 8, respectively. Next, explain what this snippet does.</p>
+<pre><code class="language-x86asm" data-lang="x86asm">01: mov edi, [ebp + 8]
+02: mov edx, edi
+03: xor eax, eax
+04: or ecx, 0FFFFFFFFh
+05: repne scasb
+06: add ecx, 2
+07: neg ecx
+08: mov al, [ebp + 0Ch]
+09: mov edi, edx
+10: rep stosb
+11: mov eax, edx
+</code></pre><h2 id="answer">Answer</h2>
+<p><code>[EBP + 8h]</code> appears to be a char buffer pointer/<code>PCHAR</code>(size = 4 bytes) since it is loaded into <code>EDI</code> register which is then implicitly used by <code>scasb</code> instruction with <code>repne</code> prefix as the memory operand address to compare for a particular byte value specified by <code>AL</code> register.</p>
+<p><code>[EBP + 0Ch]</code> appears to be a <code>CHAR</code>(size = 1 byte) since it is loaded into <code>AL</code> register which is then implicitly used by <code>stosb</code> instruction with <code>rep</code> prefix as the byte value to store into the destination operand given by <code>EDI</code> register.</p>
+<p>Line 1 sets <code>EDI</code> to the value at address <code>(EBP+8h)</code> which is probably the first argument(<code>PCHAR</code>) passed to this function following the <code>__cdecl/__stdcall</code> calling convention.</p>
+<p>Line 2 sets <code>EDX</code> with <code>EDI</code>, essentially saving a copy of the first parameter in <code>EDX</code> register. This is necessary because in Line 5 when <code>scasb</code> is used, it automatically increments/decrements <code>EDI</code> based on <code>EFLAGS.DF</code>, therefore, trashing the original value.</p>
+<p>Line 3 performs <code>Bitwise Exclusive OR</code> operation on <code>EAX</code> with itself, thereby clearing it to 0.</p>
+<p>Line 4 performs <code>Bitwise Inclusive OR</code> operation on <code>ECX</code> with <code>0xFFFFFFFF</code>, thereby setting it to <code>0xFFFFFFFF</code>.</p>
+<p>Line 5 uses the <code>scasb</code> instruction to scan the string(pointed to by <code>EDI</code>) for the <code>NULL</code> byte terminator(given by <code>AL</code>) one byte at a time. <code>repne</code> prefix(which uses <code>ECX</code> as an unsigned counter) is used to indicate to keep scanning until it finds the <code>NULL</code> byte. This will also decrement <code>ECX</code> for each byte scanned until the <code>NULL</code> byte is encountered.</p>
+<p>Line 6 adds 2 to <code>ECX</code> to compensate for counting from -1 instead of 0 and including the <code>NULL</code> byte.</p>
+<p>Line 7 replaces <code>ECX</code> with its 2&rsquo;s complement, thereby turning it into a positive value. Now, <code>ECX</code> contains the length of the string excluding the <code>NULL</code> byte.</p>
+<p>Line 8 sets <code>AL</code> to the value at address <code>(EBP+0xC)</code> which is probably the second argument(<code>CHAR</code>) passed to this function following the <code>__cdecl/__stdcall</code> calling convention.</p>
+<p>Line 9 sets <code>EDI</code> with <code>EDX</code> to prime it with the destination operand address for the next instruction.</p>
+<p>Line 10 uses the <code>stosb</code> instruction to store the byte(given by <code>AL</code>) into the string(pointed to by <code>EDI</code>) one byte at a time. <code>rep</code> prefix is used to indicate to keep setting until <code>ECX</code> decrements to 0(i.e. the entire length of the string).</p>
+<p>Line 11 sets <code>EAX</code> with <code>EDX</code> now pointing to the overwritten string. <code>EAX</code> register holds the return value when returning from a procedure.</p>
+<p>Based on all of the above, we can construct a decompilation of the assembly snippet as follows:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) PCHAR <span style="color:#f00">__cdecl</span> asm_func(
+  _In_ PCHAR pchBuffer,
+  _In_ CHAR  chValue
+) {
+  memset(pchBuffer, chValue, strlen(pchBuffer));
+  <span style="color:#f00">return</span> pchBuffer;
+}
+</code></pre></div>
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        528 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2022-07-13 05:30
+        
+
+         
+          
+        
+      </p>
+    </div>
+
+    
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    <div class="footer__inner">
+        <div class="footer__content">
+            
+            
+            
+            
+            <span>Copyright © 2022-present winterknife (@_winterknife_). All rights reserved.</span>
+        </div>
+    </div>
+    
+    
+    <div class="footer__inner">
+        <div class="footer__content">
+            <span>Other content copyright of their owners.</span>
+        </div>
+    </div>
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+<script type="text/javascript" src="https://lampreylabs.com/bundle.min.7a6340615fce8f6e63f622740e3da888ef0b05a6fc967dd77a93689c1058b20c34049840be586dd4e60db21d694d421bf794ccd5865b1bde6884638fc0993264.js" integrity="sha512-emNAYV/Oj25j9iJ0Dj2oiO8LBab8ln3XepNonBBYsgw0BJhAvlht1OYNsh1pTUIb95TM1YZbG95ohGOPwJkyZA=="></script>
+
+
+
+    </body>
+</html>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Practical Reverse Engineering Exercise Solutions on Lamprey Labs</title>
+    <link>https://lampreylabs.com/series/practical-reverse-engineering-exercise-solutions/</link>
+    <description>Recent content in Practical Reverse Engineering Exercise Solutions on Lamprey Labs</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under the GNU General Public License v3.0</copyright>
+    <lastBuildDate>Wed, 13 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lampreylabs.com/series/practical-reverse-engineering-exercise-solutions/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Practical Reverse Engineering - Exercise 1, Page 11</title>
+      <link>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/</link>
+      <pubDate>Wed, 13 Jul 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/</guid>
+      <description>Table of Contents  Question Answer  Question This function uses a combination SCAS and STOS to do its work. First, explain what is the type of the [EBP+8] and [EBP+C] in line 1 and 8, respectively. Next, explain what this snippet does.
+01: mov edi, [ebp + 8] 02: mov edx, edi 03: xor eax, eax 04: or ecx, 0FFFFFFFFh 05: repne scasb 06: add ecx, 2 07: neg ecx 08: mov al, [ebp + 0Ch] 09: mov edi, edx 10: rep stosb 11: mov eax, edx Answer [EBP + 8h] appears to be a char buffer pointer/PCHAR(size = 4 bytes) since it is loaded into EDI register which is then implicitly used by scasb instruction with repne prefix as the memory operand address to compare for a particular byte value specified by AL register.</description>
+    </item>
+    
+  </channel>
+</rss>

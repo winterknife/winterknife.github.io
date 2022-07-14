@@ -4,10 +4,11 @@
         <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="author" content="map[name:Hugo Authors]">
-<meta name="description" content="Hugo is the world’s fastest framework for building websites. It is written in Go.
-It makes use of a variety of open source projects including:
- https://github.com/russross/blackfriday https://github.com/alecthomas/chroma https://github.com/muesli/smartcrop https://github.com/spf13/cobra https://github.com/spf13/viper  Learn more and contribute on GitHub." />
+<meta name="author" content="map[name:winterknife]">
+<meta name="description" content="Hey there! My name&amp;rsquo;s Upayan. I predominantly go by my &amp;ldquo;winterknife&amp;rdquo; alias nowadays.
+I am a software engineer; my interests revolve around the following topics:
+ Arcane knowledge of Windows system internals x86 ISA User-mode and kernel-mode CNO Software Development Vulnerability Research and Exploitation  I use the skills gained from my relentless pursuit of the above to solve hard problems in support of the information security industry.
+This blog is where I&amp;rsquo;ll be sharing random thoughts, experiments and projects pertaining to low-level computer systems research and software development." />
 <meta name="keywords" content="" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="" />
@@ -27,7 +28,7 @@ It makes use of a variety of open source projects including:
 
 
 
-<link rel="stylesheet" href="https://lampreylabs.com/main.cdec5868f3a09804a8c0ffe01b3fca748602c39d5a698a216a5a584156815dbf.css">
+<link rel="stylesheet" href="https://lampreylabs.com/main.ec5813d7f5ef5c707c6fe0e84133d038cc714ef28639df0a5bc50aa3b3697bab.css">
 
 
 
@@ -41,12 +42,13 @@ It makes use of a variety of open source projects including:
 
 
 <meta itemprop="name" content="About">
-<meta itemprop="description" content="Hugo is the world’s fastest framework for building websites. It is written in Go.
-It makes use of a variety of open source projects including:
- https://github.com/russross/blackfriday https://github.com/alecthomas/chroma https://github.com/muesli/smartcrop https://github.com/spf13/cobra https://github.com/spf13/viper  Learn more and contribute on GitHub.">
-<meta itemprop="datePublished" content="2014-04-09T00:00:00+00:00" />
-<meta itemprop="dateModified" content="2014-04-09T00:00:00+00:00" />
-<meta itemprop="wordCount" content="36">
+<meta itemprop="description" content="Hey there! My name&rsquo;s Upayan. I predominantly go by my &ldquo;winterknife&rdquo; alias nowadays.
+I am a software engineer; my interests revolve around the following topics:
+ Arcane knowledge of Windows system internals x86 ISA User-mode and kernel-mode CNO Software Development Vulnerability Research and Exploitation  I use the skills gained from my relentless pursuit of the above to solve hard problems in support of the information security industry.
+This blog is where I&rsquo;ll be sharing random thoughts, experiments and projects pertaining to low-level computer systems research and software development.">
+<meta itemprop="datePublished" content="2022-07-13T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-07-13T00:00:00+00:00" />
+<meta itemprop="wordCount" content="114">
 <meta itemprop="image" content="https://lampreylabs.com/"/>
 
 
@@ -57,29 +59,31 @@ It makes use of a variety of open source projects including:
 <meta name="twitter:image" content="https://lampreylabs.com/"/>
 
 <meta name="twitter:title" content="About"/>
-<meta name="twitter:description" content="Hugo is the world’s fastest framework for building websites. It is written in Go.
-It makes use of a variety of open source projects including:
- https://github.com/russross/blackfriday https://github.com/alecthomas/chroma https://github.com/muesli/smartcrop https://github.com/spf13/cobra https://github.com/spf13/viper  Learn more and contribute on GitHub."/>
+<meta name="twitter:description" content="Hey there! My name&rsquo;s Upayan. I predominantly go by my &ldquo;winterknife&rdquo; alias nowadays.
+I am a software engineer; my interests revolve around the following topics:
+ Arcane knowledge of Windows system internals x86 ISA User-mode and kernel-mode CNO Software Development Vulnerability Research and Exploitation  I use the skills gained from my relentless pursuit of the above to solve hard problems in support of the information security industry.
+This blog is where I&rsquo;ll be sharing random thoughts, experiments and projects pertaining to low-level computer systems research and software development."/>
 
 
 
 
     <meta property="og:title" content="About" />
-<meta property="og:description" content="Hugo is the world’s fastest framework for building websites. It is written in Go.
-It makes use of a variety of open source projects including:
- https://github.com/russross/blackfriday https://github.com/alecthomas/chroma https://github.com/muesli/smartcrop https://github.com/spf13/cobra https://github.com/spf13/viper  Learn more and contribute on GitHub." />
+<meta property="og:description" content="Hey there! My name&rsquo;s Upayan. I predominantly go by my &ldquo;winterknife&rdquo; alias nowadays.
+I am a software engineer; my interests revolve around the following topics:
+ Arcane knowledge of Windows system internals x86 ISA User-mode and kernel-mode CNO Software Development Vulnerability Research and Exploitation  I use the skills gained from my relentless pursuit of the above to solve hard problems in support of the information security industry.
+This blog is where I&rsquo;ll be sharing random thoughts, experiments and projects pertaining to low-level computer systems research and software development." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://lampreylabs.com/about/" />
 <meta property="og:image" content="https://lampreylabs.com/"/>
-<meta property="article:published_time" content="2014-04-09T00:00:00+00:00" />
-<meta property="article:modified_time" content="2014-04-09T00:00:00+00:00" />
+<meta property="article:published_time" content="2022-07-13T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-07-13T00:00:00+00:00" />
 
 
 
 
 
 
-    <meta property="article:published_time" content="2014-04-09 00:00:00 &#43;0000 UTC" />
+    <meta property="article:published_time" content="2022-07-13 00:00:00 &#43;0000 UTC" />
 
 
 
@@ -132,6 +136,11 @@ It makes use of a variety of open source projects including:
             
         </span>
     </span>
+
+    <link rel="stylesheet" href="https://lampreylabs.com/highlight/styles/github-dark.min.css">
+    <script src="https://lampreylabs.com/highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
 </header>
 
 
@@ -152,16 +161,18 @@ It makes use of a variety of open source projects including:
             
 
             <div class="post-content">
-                <p>Hugo is the <strong>world’s fastest framework for building websites</strong>. It is written in Go.</p>
-<p>It makes use of a variety of open source projects including:</p>
+                <p>Hey there! My name&rsquo;s Upayan. I predominantly go by my <strong>&ldquo;winterknife&rdquo;</strong> alias nowadays.</p>
+<p>I am a software engineer; my interests revolve around the following topics:</p>
 <ul>
-<li><a href="https://github.com/russross/blackfriday">https://github.com/russross/blackfriday</a></li>
-<li><a href="https://github.com/alecthomas/chroma">https://github.com/alecthomas/chroma</a></li>
-<li><a href="https://github.com/muesli/smartcrop">https://github.com/muesli/smartcrop</a></li>
-<li><a href="https://github.com/spf13/cobra">https://github.com/spf13/cobra</a></li>
-<li><a href="https://github.com/spf13/viper">https://github.com/spf13/viper</a></li>
+<li>Arcane knowledge of <strong>Windows</strong> system internals</li>
+<li><strong>x86 ISA</strong></li>
+<li>User-mode and kernel-mode <strong>CNO Software Development</strong></li>
+<li><strong>Vulnerability Research</strong> and <strong>Exploitation</strong></li>
 </ul>
-<p>Learn more and contribute on <a href="https://github.com/gohugoio">GitHub</a>.</p>
+<p>I use the skills gained from my relentless pursuit of the above to solve hard problems in support of the information security industry.</p>
+<p>This blog is where I&rsquo;ll be sharing random thoughts, experiments and projects pertaining to low-level computer systems research and software development.</p>
+<p>All of my contact information can be found on the home page.</p>
+<p>That is all for my bio. I&rsquo;m hoping that my work will speak for itself.</p>
 
             </div>
         </article>

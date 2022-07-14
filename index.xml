@@ -7,27 +7,27 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>This work is licensed under the GNU General Public License v3.0</copyright>
-    <lastBuildDate>Tue, 21 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lampreylabs.com/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 13 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lampreylabs.com/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Hello World</title>
-      <link>https://lampreylabs.com/posts/2022/06/hello-world/</link>
-      <pubDate>Tue, 21 Jun 2022 00:00:00 +0000</pubDate>
+      <title>Practical Reverse Engineering - Exercise 1, Page 11</title>
+      <link>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/</link>
+      <pubDate>Wed, 13 Jul 2022 00:00:00 +0000</pubDate>
       
-      <guid>https://lampreylabs.com/posts/2022/06/hello-world/</guid>
-      <description>Advertisement :)
- pica - high quality and fast image resize in browser. babelfish - developer friendly i18n with plurals support and easy syntax.  You will like those projects!
- Table of Contents  Example  Example2 Third Example   Example4  Example Example2 Third Example Example4 h1 Heading 8-) h2 Heading h3 Heading h4 Heading h5 Heading h6 Heading Horizontal Rules    Typographic replacements Enable typographer option to see result.</description>
+      <guid>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/</guid>
+      <description>Table of Contents  Question Answer  Question This function uses a combination SCAS and STOS to do its work. First, explain what is the type of the [EBP+8] and [EBP+C] in line 1 and 8, respectively. Next, explain what this snippet does.
+01: mov edi, [ebp + 8] 02: mov edx, edi 03: xor eax, eax 04: or ecx, 0FFFFFFFFh 05: repne scasb 06: add ecx, 2 07: neg ecx 08: mov al, [ebp + 0Ch] 09: mov edi, edx 10: rep stosb 11: mov eax, edx Answer [EBP + 8h] appears to be a char buffer pointer/PCHAR(size = 4 bytes) since it is loaded into EDI register which is then implicitly used by scasb instruction with repne prefix as the memory operand address to compare for a particular byte value specified by AL register.</description>
     </item>
     
     <item>
       <title>About</title>
       <link>https://lampreylabs.com/about/</link>
-      <pubDate>Wed, 09 Apr 2014 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 13 Jul 2022 00:00:00 +0000</pubDate>
       
       <guid>https://lampreylabs.com/about/</guid>
-      <description>Hugo is the world’s fastest framework for building websites. It is written in Go.
-It makes use of a variety of open source projects including:
- https://github.com/russross/blackfriday https://github.com/alecthomas/chroma https://github.com/muesli/smartcrop https://github.com/spf13/cobra https://github.com/spf13/viper  Learn more and contribute on GitHub.</description>
+      <description>Hey there! My name&amp;rsquo;s Upayan. I predominantly go by my &amp;ldquo;winterknife&amp;rdquo; alias nowadays.
+I am a software engineer; my interests revolve around the following topics:
+ Arcane knowledge of Windows system internals x86 ISA User-mode and kernel-mode CNO Software Development Vulnerability Research and Exploitation  I use the skills gained from my relentless pursuit of the above to solve hard problems in support of the information security industry.
+This blog is where I&amp;rsquo;ll be sharing random thoughts, experiments and projects pertaining to low-level computer systems research and software development.</description>
     </item>
     
   </channel>
