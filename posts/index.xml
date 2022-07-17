@@ -6,8 +6,67 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>This work is licensed under the GNU General Public License v3.0</copyright>
-        <lastBuildDate>Wed, 13 Jul 2022 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Sat, 16 Jul 2022 00:00:00 +0000</lastBuildDate>
         <atom:link href="https://lampreylabs.com/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Practical Reverse Engineering - Exercise 1, Page 17</title>
+            <link>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/</link>
+            <pubDate>Sat, 16 Jul 2022 00:00:00 +0000</pubDate>
+            
+            <guid>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/</guid>
+            <description>Table of Contents  Question Answer  Question Given what you learned about CALL and RET, explain how you would read the value of EIP? Why can’t you just do MOV EAX, EIP?
+Answer mov eax, eip is seen as an invalid instruction(not encodable) by any assembler since EIP is not a General Purpose Register(GPR); it is a special purpose register that is used as a pointer to the next instruction to execute(hence known as, extended instruction pointer).</description>
+            <content type="html"><![CDATA[<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#question">Question</a></li>
+<li><a href="#answer">Answer</a></li>
+</ul>
+<h2 id="question">Question</h2>
+<p>Given what you learned about <code>CALL</code> and <code>RET</code>, explain how you would read
+the value of <code>EIP</code>? Why can’t you just do <code>MOV EAX, EIP</code>?</p>
+<h2 id="answer">Answer</h2>
+<p><code>mov eax, eip</code> is seen as an invalid instruction(not encodable) by any assembler since <code>EIP</code> is not a <code>General Purpose Register(GPR)</code>; it is a special purpose register that is used as a pointer to the next instruction to execute(hence known as, <em>extended</em> instruction pointer).</p>
+<p>However, there are a couple of tricks to get <code>EIP</code> register value by reading it from the stack following the execution of the <code>call</code> instruction.</p>
+<p>Consider the following assembly subroutine(I&rsquo;m using <a href="https://docs.microsoft.com/en-us/cpp/assembler/masm/microsoft-macro-assembler-reference?view=msvc-170">MASM</a> as the assembler):</p>
+<pre><code class="language-x86asm" data-lang="x86asm">; Obtain instruction pointer(EIP) register value
+OPTION LANGUAGE: SYSCALL
+@get_eip@0 PROC PUBLIC
+  ; Function prologue - save the non-volatile registers onto the stack and perform explicit stack frame linkage
+  push ebp                      ; ESP = ESP - 0x4 and [ESP] = EBP, preserve the current base frame pointer on the stack
+  mov ebp, esp                  ; EBP = ESP, create a new local stack frame within the callee by setting the base frame pointer to point to the current top of the stack
+
+  ; Get the address of the instruction in the calling function immediately after the call instruction that will be executed after control returns to the caller
+  mov eax, dword ptr [ebp + 4h] ; EAX = [EBP + 0x4], obtain the return address from the stack and store it into EAX
+
+  ; Function epilogue - perform cleanup and return EAX register value to the calling procedure
+  ;leave
+  ;mov esp, ebp                 ; ESP = EBP, restore the stack by releasing the local stack frame
+  pop ebp                       ; EBP = [ESP] and ESP = ESP + 0x4, restore the caller's base frame pointer
+  ret                           ; EIP = [ESP] and ESP = ESP + 0x4, return from procedure
+@get_eip@0 ENDP
+OPTION LANGUAGE: C
+</code></pre><p>And the corresponding function declaration in a header file to be able to call it from <code>C/C++</code> code:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) DWORD <span style="color:#f00">__fastcall</span> get_eip(
+  <span style="color:#ee82ee">void</span>
+);
+</code></pre></div><p>Note that the same function could also be written in <code>C</code> instead of assembly like so:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">DWORD <span style="color:#f00">__fastcall</span> <span style="color:#ff0">get_eip</span>(<span style="color:#ee82ee">void</span>) {
+  <span style="color:#f00">return</span> (DWORD)_ReturnAddress();
+}
+</code></pre></div><p>To get <code>EIP</code> register value, we call the above subroutine:</p>
+<p><img src="/img/before-call.PNG" alt="before-call" title="before-call"></p>
+<p>After the <code>call</code> instruction is executed, <code>retaddr</code> is pushed onto the stack and <code>EIP</code> value is changed to the <code>call</code> target.</p>
+<p><img src="/img/after-call.PNG" alt="after-call" title="after-call"></p>
+<p>Note that the top of the stack now contains the return address. Also, note that <code>WinDbg</code> stack view displays lower memory addresses higher and higher memory addresses lower and that&rsquo;s why the stack appears to grow in the upward direction here.</p>
+<p>We can read the <code>retaddr</code> from the stack by reading memory at address (<em>base frame pointer</em> + 0x4) and storing it into <code>EAX</code>.</p>
+<p><img src="/img/get-retaddr.PNG" alt="get-retaddr" title="get-retaddr"></p>
+<p>Finally, when the <code>ret</code> instruction is executed, the <code>retaddr</code> is popped from the stack into <code>EIP</code>.</p>
+<p><img src="/img/eip.PNG" alt="eip" title="eip"></p>
+<p>Note that after returning from the subroutine, <code>EAX</code> now contains the same value as <code>EIP</code>.</p>
+<p>Another important thing to note is that using the <code>call $+5; pop eax</code> technique should be avoided altogether to prevent messing up the <code>Return Address Stack(RAS)</code> and causing branch mispredictions on older <code>Pentium Pro</code> processors.</p>
+]]></content>
+        </item>
         
         <item>
             <title>Practical Reverse Engineering - Exercise 1, Page 11</title>
@@ -54,8 +113,7 @@
   _In_ PCHAR pchBuffer,
   _In_ CHAR  chValue
 ) {
-  memset(pchBuffer, chValue, strlen(pchBuffer));
-  <span style="color:#f00">return</span> pchBuffer;
+  <span style="color:#f00">return</span> (PCHAR)memset(pchBuffer, chValue, strlen(pchBuffer));
 }
 </code></pre></div>]]></content>
         </item>

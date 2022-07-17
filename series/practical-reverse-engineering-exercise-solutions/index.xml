@@ -7,7 +7,17 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>This work is licensed under the GNU General Public License v3.0</copyright>
-    <lastBuildDate>Wed, 13 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lampreylabs.com/series/practical-reverse-engineering-exercise-solutions/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 16 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lampreylabs.com/series/practical-reverse-engineering-exercise-solutions/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Practical Reverse Engineering - Exercise 1, Page 17</title>
+      <link>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/</link>
+      <pubDate>Sat, 16 Jul 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/</guid>
+      <description>Table of Contents  Question Answer  Question Given what you learned about CALL and RET, explain how you would read the value of EIP? Why can’t you just do MOV EAX, EIP?
+Answer mov eax, eip is seen as an invalid instruction(not encodable) by any assembler since EIP is not a General Purpose Register(GPR); it is a special purpose register that is used as a pointer to the next instruction to execute(hence known as, extended instruction pointer).</description>
+    </item>
+    
     <item>
       <title>Practical Reverse Engineering - Exercise 1, Page 11</title>
       <link>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/</link>

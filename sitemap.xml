@@ -3,32 +3,37 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/</loc>
+    <lastmod>2022-07-16T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/</loc>
     <lastmod>2022-07-13T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://lampreylabs.com/about/</loc>
-    <lastmod>2022-07-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://lampreylabs.com/</loc>
-    <lastmod>2022-07-13T00:00:00+00:00</lastmod>
+    <lastmod>2022-07-16T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://lampreylabs.com/posts/</loc>
-    <lastmod>2022-07-13T00:00:00+00:00</lastmod>
+    <lastmod>2022-07-16T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://lampreylabs.com/series/practical-reverse-engineering-exercise-solutions/</loc>
-    <lastmod>2022-07-13T00:00:00+00:00</lastmod>
+    <lastmod>2022-07-16T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://lampreylabs.com/series/</loc>
+    <lastmod>2022-07-16T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://lampreylabs.com/about/</loc>
     <lastmod>2022-07-13T00:00:00+00:00</lastmod>
   </url>
   
