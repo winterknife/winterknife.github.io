@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:winterknife]">
+<meta name="description" content="Table of Contents  Question Answer  Question Come up with at least two code sequences to set EIP to 0xAABBCCDD.
+Answer There are quite a number of instructions in the x86 ISA to manipulate EIP register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&amp;rsquo;ve already encountered before in the previous exercise).
+ CALL  call 0xAABBCCDD The call instruction is used to call a procedure; it pushes the retdaddr on the stack before changing EIP to the call target effectively transferring control to it." />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/" />
+
+
+    <title>
+        
+            Practical Reverse Engineering - Exercise 2, Page 17 :: Lamprey Labs 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lampreylabs.com/main.ec5813d7f5ef5c707c6fe0e84133d038cc714ef28639df0a5bc50aa3b3697bab.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lampreylabs.com/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lampreylabs.com/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lampreylabs.com/favicon-16x16.png">
+    <link rel="manifest" href="https://lampreylabs.com/site.webmanifest">
+    <link rel="mask-icon" href="https://lampreylabs.com/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lampreylabs.com/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="Practical Reverse Engineering - Exercise 2, Page 17">
+<meta itemprop="description" content="Table of Contents  Question Answer  Question Come up with at least two code sequences to set EIP to 0xAABBCCDD.
+Answer There are quite a number of instructions in the x86 ISA to manipulate EIP register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&rsquo;ve already encountered before in the previous exercise).
+ CALL  call 0xAABBCCDD The call instruction is used to call a procedure; it pushes the retdaddr on the stack before changing EIP to the call target effectively transferring control to it.">
+<meta itemprop="datePublished" content="2022-07-19T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-07-19T00:00:00+00:00" />
+<meta itemprop="wordCount" content="146">
+<meta itemprop="image" content="https://lampreylabs.com/"/>
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lampreylabs.com/"/>
+
+<meta name="twitter:title" content="Practical Reverse Engineering - Exercise 2, Page 17"/>
+<meta name="twitter:description" content="Table of Contents  Question Answer  Question Come up with at least two code sequences to set EIP to 0xAABBCCDD.
+Answer There are quite a number of instructions in the x86 ISA to manipulate EIP register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&rsquo;ve already encountered before in the previous exercise).
+ CALL  call 0xAABBCCDD The call instruction is used to call a procedure; it pushes the retdaddr on the stack before changing EIP to the call target effectively transferring control to it."/>
+
+
+
+
+    <meta property="og:title" content="Practical Reverse Engineering - Exercise 2, Page 17" />
+<meta property="og:description" content="Table of Contents  Question Answer  Question Come up with at least two code sequences to set EIP to 0xAABBCCDD.
+Answer There are quite a number of instructions in the x86 ISA to manipulate EIP register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&rsquo;ve already encountered before in the previous exercise).
+ CALL  call 0xAABBCCDD The call instruction is used to call a procedure; it pushes the retdaddr on the stack before changing EIP to the call target effectively transferring control to it." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/" />
+<meta property="og:image" content="https://lampreylabs.com/"/>
+<meta property="article:published_time" content="2022-07-19T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-07-19T00:00:00+00:00" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/" />
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2022-07-19 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+        
+<script type="text/javascript" src="https://lampreylabs.com/js/theme.min.ecee69b9833f1e32d9e500849eca9563ddf1ce26f44cb14860a0f0bcb39152cf8f5026e01375dc2eba0ce52b35e9d7b6d836883121015abbc2c36e1debae73f6.js" integrity="sha512-7O5puYM/HjLZ5QCEnsqVY93xzib0TLFIYKDwvLORUs&#43;PUCbgE3XcLroM5Ss16de22DaIMSEBWrvCw24d665z9g=="></script>
+    </head>
+
+    
+        <body>
+    
+
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lampreylabs.com/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark"> </span>
+            <span class="logo__text">\\??\C:</span>
+            <span class="logo__cursor" style=
+                  "
+                   background-color:#d60000;
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lampreylabs.com/about/">About</a></li><li><a href="https://lampreylabs.com/posts/">Posts</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+
+    <link rel="stylesheet" href="https://lampreylabs.com/highlight/styles/github-dark.min.css">
+    <script src="https://lampreylabs.com/highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        One minute
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/">Practical Reverse Engineering - Exercise 2, Page 17</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#question">Question</a></li>
+<li><a href="#answer">Answer</a></li>
+</ul>
+<h2 id="question">Question</h2>
+<p>Come up with at least two code sequences to set <code>EIP</code> to <code>0xAABBCCDD</code>.</p>
+<h2 id="answer">Answer</h2>
+<p>There are quite a number of instructions in the <code>x86 ISA</code> to manipulate <code>EIP</code> register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&rsquo;ve already encountered before in the previous exercise).</p>
+<ol>
+<li><a href="https://namazso.github.io/x86/html/CALL.html">CALL</a></li>
+</ol>
+<pre><code class="language-x86asm" data-lang="x86asm">call 0xAABBCCDD
+</code></pre><p>The <code>call</code> instruction is used to call a procedure; it pushes the <code>retdaddr</code> on the stack before changing <code>EIP</code> to the call target effectively transferring control to it.</p>
+<ol start="2">
+<li><a href="https://namazso.github.io/x86/html/RET.html">RET</a></li>
+</ol>
+<pre><code class="language-x86asm" data-lang="x86asm">push 0xAABBCCDD
+ret
+</code></pre><p>The <code>ret</code> instruction is used to return from a procedure; it pops whatever&rsquo;s at the top of the stack into <code>EIP</code> register and transfers control back to the caller.</p>
+<blockquote>
+<p>Fun Fact: This method of changing the instruction pointer is often used in code-reuse attacks such as <code>Return Oriented Programming(ROP)</code>.</p>
+</blockquote>
+
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        146 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2022-07-19 05:30
+        
+
+         
+          
+        
+      </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+
+        <div class="pagination__buttons">
+            
+
+            
+            <span class="button next">
+                <a href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/">
+                    <span class="button__text">Practical Reverse Engineering - Exercise 1, Page 17</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    <div class="footer__inner">
+        <div class="footer__content">
+            
+            
+            
+            
+            <span>Copyright © 2022-present winterknife (@_winterknife_). All rights reserved.</span>
+        </div>
+    </div>
+    
+    
+    <div class="footer__inner">
+        <div class="footer__content">
+            <span>Other content copyright of their owners.</span>
+        </div>
+    </div>
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+<script type="text/javascript" src="https://lampreylabs.com/bundle.min.7a6340615fce8f6e63f622740e3da888ef0b05a6fc967dd77a93689c1058b20c34049840be586dd4e60db21d694d421bf794ccd5865b1bde6884638fc0993264.js" integrity="sha512-emNAYV/Oj25j9iJ0Dj2oiO8LBab8ln3XepNonBBYsgw0BJhAvlht1OYNsh1pTUIb95TM1YZbG95ohGOPwJkyZA=="></script>
+
+
+
+    </body>
+</html>

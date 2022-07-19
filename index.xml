@@ -7,7 +7,18 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>This work is licensed under the GNU General Public License v3.0</copyright>
-    <lastBuildDate>Sat, 16 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lampreylabs.com/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 19 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lampreylabs.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Practical Reverse Engineering - Exercise 2, Page 17</title>
+      <link>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/</link>
+      <pubDate>Tue, 19 Jul 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/</guid>
+      <description>Table of Contents  Question Answer  Question Come up with at least two code sequences to set EIP to 0xAABBCCDD.
+Answer There are quite a number of instructions in the x86 ISA to manipulate EIP register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&amp;rsquo;ve already encountered before in the previous exercise).
+ CALL  call 0xAABBCCDD The call instruction is used to call a procedure; it pushes the retdaddr on the stack before changing EIP to the call target effectively transferring control to it.</description>
+    </item>
+    
     <item>
       <title>Practical Reverse Engineering - Exercise 1, Page 17</title>
       <link>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/</link>

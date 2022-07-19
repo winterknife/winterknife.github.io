@@ -6,8 +6,43 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>This work is licensed under the GNU General Public License v3.0</copyright>
-        <lastBuildDate>Sat, 16 Jul 2022 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Tue, 19 Jul 2022 00:00:00 +0000</lastBuildDate>
         <atom:link href="https://lampreylabs.com/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Practical Reverse Engineering - Exercise 2, Page 17</title>
+            <link>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/</link>
+            <pubDate>Tue, 19 Jul 2022 00:00:00 +0000</pubDate>
+            
+            <guid>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/</guid>
+            <description>Table of Contents  Question Answer  Question Come up with at least two code sequences to set EIP to 0xAABBCCDD.
+Answer There are quite a number of instructions in the x86 ISA to manipulate EIP register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&amp;rsquo;ve already encountered before in the previous exercise).
+ CALL  call 0xAABBCCDD The call instruction is used to call a procedure; it pushes the retdaddr on the stack before changing EIP to the call target effectively transferring control to it.</description>
+            <content type="html"><![CDATA[<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#question">Question</a></li>
+<li><a href="#answer">Answer</a></li>
+</ul>
+<h2 id="question">Question</h2>
+<p>Come up with at least two code sequences to set <code>EIP</code> to <code>0xAABBCCDD</code>.</p>
+<h2 id="answer">Answer</h2>
+<p>There are quite a number of instructions in the <code>x86 ISA</code> to manipulate <code>EIP</code> register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&rsquo;ve already encountered before in the previous exercise).</p>
+<ol>
+<li><a href="https://namazso.github.io/x86/html/CALL.html">CALL</a></li>
+</ol>
+<pre><code class="language-x86asm" data-lang="x86asm">call 0xAABBCCDD
+</code></pre><p>The <code>call</code> instruction is used to call a procedure; it pushes the <code>retdaddr</code> on the stack before changing <code>EIP</code> to the call target effectively transferring control to it.</p>
+<ol start="2">
+<li><a href="https://namazso.github.io/x86/html/RET.html">RET</a></li>
+</ol>
+<pre><code class="language-x86asm" data-lang="x86asm">push 0xAABBCCDD
+ret
+</code></pre><p>The <code>ret</code> instruction is used to return from a procedure; it pops whatever&rsquo;s at the top of the stack into <code>EIP</code> register and transfers control back to the caller.</p>
+<blockquote>
+<p>Fun Fact: This method of changing the instruction pointer is often used in code-reuse attacks such as <code>Return Oriented Programming(ROP)</code>.</p>
+</blockquote>
+]]></content>
+        </item>
         
         <item>
             <title>Practical Reverse Engineering - Exercise 1, Page 17</title>
