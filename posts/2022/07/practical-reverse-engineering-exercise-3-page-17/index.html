@@ -5,18 +5,18 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="map[name:winterknife]">
-<meta name="description" content="Table of Contents  Question Answer  Question Come up with at least two code sequences to set EIP to 0xAABBCCDD.
-Answer There are several instructions in the x86 ISA to manipulate EIP register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&amp;rsquo;ve already encountered before in the previous exercise).
- CALL  call 0xAABBCCDD The call instruction is used to call a procedure; it pushes the retdaddr on the stack before changing EIP to the call target effectively transferring control to it." />
+<meta name="description" content="Table of Contents  Question Answer  Question In the example function, addme, what would happen if the stack pointer were not properly restored before executing RET?
+Answer Here is the addme function for reference:
+push ebp mov ebp, esp movsx eax, word ptr [ebp &#43; 8h] movsx ecx, word ptr [ebp &#43; 0Ch] add eax, ecx mov esp, ebp pop ebp ret In this particular case, ESP remains unmodified(equal to EBP) so mov esp, ebp can be safely omitted from the function epilogue." />
 <meta name="keywords" content="" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="" />
-<link rel="canonical" href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/" />
+<link rel="canonical" href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-3-page-17/" />
 
 
     <title>
         
-            Practical Reverse Engineering - Exercise 2, Page 17 :: Lamprey Labs 
+            Practical Reverse Engineering - Exercise 3, Page 17 :: Lamprey Labs 
         
     </title>
 
@@ -40,13 +40,13 @@ Answer There are several instructions in the x86 ISA to manipulate EIP register(
     <meta name="msapplication-TileColor" content="">
 
 
-<meta itemprop="name" content="Practical Reverse Engineering - Exercise 2, Page 17">
-<meta itemprop="description" content="Table of Contents  Question Answer  Question Come up with at least two code sequences to set EIP to 0xAABBCCDD.
-Answer There are several instructions in the x86 ISA to manipulate EIP register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&rsquo;ve already encountered before in the previous exercise).
- CALL  call 0xAABBCCDD The call instruction is used to call a procedure; it pushes the retdaddr on the stack before changing EIP to the call target effectively transferring control to it.">
-<meta itemprop="datePublished" content="2022-07-19T00:00:00+00:00" />
-<meta itemprop="dateModified" content="2022-07-19T00:00:00+00:00" />
-<meta itemprop="wordCount" content="141">
+<meta itemprop="name" content="Practical Reverse Engineering - Exercise 3, Page 17">
+<meta itemprop="description" content="Table of Contents  Question Answer  Question In the example function, addme, what would happen if the stack pointer were not properly restored before executing RET?
+Answer Here is the addme function for reference:
+push ebp mov ebp, esp movsx eax, word ptr [ebp &#43; 8h] movsx ecx, word ptr [ebp &#43; 0Ch] add eax, ecx mov esp, ebp pop ebp ret In this particular case, ESP remains unmodified(equal to EBP) so mov esp, ebp can be safely omitted from the function epilogue.">
+<meta itemprop="datePublished" content="2022-07-20T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-07-20T00:00:00+00:00" />
+<meta itemprop="wordCount" content="148">
 <meta itemprop="image" content="https://lampreylabs.com/"/>
 
 
@@ -56,23 +56,23 @@ Answer There are several instructions in the x86 ISA to manipulate EIP register(
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://lampreylabs.com/"/>
 
-<meta name="twitter:title" content="Practical Reverse Engineering - Exercise 2, Page 17"/>
-<meta name="twitter:description" content="Table of Contents  Question Answer  Question Come up with at least two code sequences to set EIP to 0xAABBCCDD.
-Answer There are several instructions in the x86 ISA to manipulate EIP register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&rsquo;ve already encountered before in the previous exercise).
- CALL  call 0xAABBCCDD The call instruction is used to call a procedure; it pushes the retdaddr on the stack before changing EIP to the call target effectively transferring control to it."/>
+<meta name="twitter:title" content="Practical Reverse Engineering - Exercise 3, Page 17"/>
+<meta name="twitter:description" content="Table of Contents  Question Answer  Question In the example function, addme, what would happen if the stack pointer were not properly restored before executing RET?
+Answer Here is the addme function for reference:
+push ebp mov ebp, esp movsx eax, word ptr [ebp &#43; 8h] movsx ecx, word ptr [ebp &#43; 0Ch] add eax, ecx mov esp, ebp pop ebp ret In this particular case, ESP remains unmodified(equal to EBP) so mov esp, ebp can be safely omitted from the function epilogue."/>
 
 
 
 
-    <meta property="og:title" content="Practical Reverse Engineering - Exercise 2, Page 17" />
-<meta property="og:description" content="Table of Contents  Question Answer  Question Come up with at least two code sequences to set EIP to 0xAABBCCDD.
-Answer There are several instructions in the x86 ISA to manipulate EIP register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&rsquo;ve already encountered before in the previous exercise).
- CALL  call 0xAABBCCDD The call instruction is used to call a procedure; it pushes the retdaddr on the stack before changing EIP to the call target effectively transferring control to it." />
+    <meta property="og:title" content="Practical Reverse Engineering - Exercise 3, Page 17" />
+<meta property="og:description" content="Table of Contents  Question Answer  Question In the example function, addme, what would happen if the stack pointer were not properly restored before executing RET?
+Answer Here is the addme function for reference:
+push ebp mov ebp, esp movsx eax, word ptr [ebp &#43; 8h] movsx ecx, word ptr [ebp &#43; 0Ch] add eax, ecx mov esp, ebp pop ebp ret In this particular case, ESP remains unmodified(equal to EBP) so mov esp, ebp can be safely omitted from the function epilogue." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/" />
+<meta property="og:url" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-3-page-17/" />
 <meta property="og:image" content="https://lampreylabs.com/"/>
-<meta property="article:published_time" content="2022-07-19T00:00:00+00:00" />
-<meta property="article:modified_time" content="2022-07-19T00:00:00+00:00" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-3-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/" />
+<meta property="article:published_time" content="2022-07-20T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-07-20T00:00:00+00:00" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/" />
 
 
 
@@ -80,7 +80,7 @@ Answer There are several instructions in the x86 ISA to manipulate EIP register(
 
 
 
-    <meta property="article:published_time" content="2022-07-19 00:00:00 &#43;0000 UTC" />
+    <meta property="article:published_time" content="2022-07-20 00:00:00 &#43;0000 UTC" />
 
 
 
@@ -159,7 +159,7 @@ Answer There are several instructions in the x86 ISA to manipulate EIP register(
 
     <article>
       <h1 class="post-title">
-        <a href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/">Practical Reverse Engineering - Exercise 2, Page 17</a>
+        <a href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-3-page-17/">Practical Reverse Engineering - Exercise 3, Page 17</a>
       </h1>
 
       
@@ -175,23 +175,21 @@ Answer There are several instructions in the x86 ISA to manipulate EIP register(
 <li><a href="#answer">Answer</a></li>
 </ul>
 <h2 id="question">Question</h2>
-<p>Come up with at least two code sequences to set <code>EIP</code> to <code>0xAABBCCDD</code>.</p>
+<p>In the example function, <code>addme</code>, what would happen if the stack pointer
+were not properly restored before executing <code>RET</code>?</p>
 <h2 id="answer">Answer</h2>
-<p>There are several instructions in the <code>x86 ISA</code> to manipulate <code>EIP</code> register(control flow instructions) but in this exercise, we are going to see two of the most popular ones(and something which we&rsquo;ve already encountered before in the previous exercise).</p>
-<ol>
-<li><a href="https://namazso.github.io/x86/html/CALL.html">CALL</a></li>
-</ol>
-<pre><code class="language-x86asm" data-lang="x86asm">call 0xAABBCCDD
-</code></pre><p>The <code>call</code> instruction is used to call a procedure; it pushes the <code>retdaddr</code> on the stack before changing <code>EIP</code> to the call target effectively transferring control to it.</p>
-<ol start="2">
-<li><a href="https://namazso.github.io/x86/html/RET.html">RET</a></li>
-</ol>
-<pre><code class="language-x86asm" data-lang="x86asm">push 0xAABBCCDD
+<p>Here is the <code>addme</code> function for reference:</p>
+<pre><code class="language-x86asm" data-lang="x86asm">push ebp
+mov ebp, esp
+movsx eax, word ptr [ebp + 8h]
+movsx ecx, word ptr [ebp + 0Ch]
+add eax, ecx
+mov esp, ebp
+pop ebp
 ret
-</code></pre><p>The <code>ret</code> instruction is used to return from a procedure; it pops whatever&rsquo;s at the top of the stack into <code>EIP</code> register and transfers control to it.</p>
-<blockquote>
-<p>Fun Fact: This method of changing the instruction pointer is often used in code-reuse attacks such as <code>Return Oriented Programming(ROP)</code>.</p>
-</blockquote>
+</code></pre><p>In this particular case, <code>ESP</code> remains unmodified(equal to <code>EBP</code>) so <code>mov esp, ebp</code> can be safely omitted from the function epilogue.</p>
+<p>However, we should remember that we pushed <code>EBP</code> onto the stack in the function prologue and now the top of the stack no longer contains the <code>retaddr</code> so if we removed the <code>pop ebp</code> instruction, the stack would become unbalanced and the subsequent <code>ret</code> instruction would transfer control back to saved <code>EBP</code> register value(which is probably not the valid <code>retaddr</code>) causing undefined behaviour or program crash.</p>
+<p><img src="https://lampreylabs.com/img/balanced-stack-meme.jpg" alt="balanced-stack-meme" title="balanced-stack-meme"></p>
 
       </div>
     </article>
@@ -210,7 +208,7 @@ ret
           <line x1="16" y1="17" x2="8" y2="17"></line>
           <polyline points="10 9 9 9 8 9"></polyline>
         </svg>
-        141 Words
+        148 Words
       </p>
 
       <p>
@@ -221,7 +219,7 @@ ret
           <line x1="3" y1="10" x2="21" y2="10"></line>
         </svg>
         
-          2022-07-19 05:30
+          2022-07-20 05:30
         
 
          
@@ -236,18 +234,11 @@ ret
 
         <div class="pagination__buttons">
             
-            <span class="button previous">
-                <a href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-3-page-17/">
-                    <span class="button__icon">←</span>
-                    <span class="button__text">Practical Reverse Engineering - Exercise 3, Page 17</span>
-                </a>
-            </span>
-            
 
             
             <span class="button next">
-                <a href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/">
-                    <span class="button__text">Practical Reverse Engineering - Exercise 1, Page 17</span>
+                <a href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/">
+                    <span class="button__text">Practical Reverse Engineering - Exercise 2, Page 17</span>
                     <span class="button__icon">→</span>
                 </a>
             </span>
