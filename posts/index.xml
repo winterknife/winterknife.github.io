@@ -6,8 +6,56 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>This work is licensed under the GNU General Public License v3.0</copyright>
-        <lastBuildDate>Wed, 20 Jul 2022 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Thu, 21 Jul 2022 00:00:00 +0000</lastBuildDate>
         <atom:link href="https://lampreylabs.com/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Practical Reverse Engineering - Exercise 4, Page 17</title>
+            <link>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-4-page-17/</link>
+            <pubDate>Thu, 21 Jul 2022 00:00:00 +0000</pubDate>
+            
+            <guid>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-4-page-17/</guid>
+            <description>Table of Contents  Question Answer  Question In all of the calling conventions explained, the return value is stored in a 32-bit register(EAX). What happens when the return value does not fit in a 32-bit register? Write a program to experiment and evaluate your answer. Does the mechanism change from compiler to compiler?
+Answer Let us consider the following C code:
+extern &amp;#34;C&amp;#34; __declspec(noinline) unsigned __int64 __stdcall fun( void ) { return 0x4141414142424242; } Compiling it with x86 msvc v19.</description>
+            <content type="html"><![CDATA[<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#question">Question</a></li>
+<li><a href="#answer">Answer</a></li>
+</ul>
+<h2 id="question">Question</h2>
+<p>In all of the calling conventions explained, the return value is stored in a 32-bit register(<code>EAX</code>). What happens when the return value does not fit in a 32-bit register? Write a program to experiment and evaluate your answer. Does the mechanism change from compiler to compiler?</p>
+<h2 id="answer">Answer</h2>
+<p>Let us consider the following <code>C</code> code:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) <span style="color:#ee82ee">unsigned</span> <span style="color:#f00">__int64</span> <span style="color:#f00">__stdcall</span> fun(
+  <span style="color:#ee82ee">void</span>
+) {
+  <span style="color:#f00">return</span> <span style="color:#f60">0x4141414142424242</span>;
+}
+</code></pre></div><p>Compiling it with <a href="https://godbolt.org/z/K4ab7soGP">x86 msvc v19.latest C/C++ compiler on godbolt.org</a> generates the following assembly code:</p>
+<pre><code class="language-x86asm" data-lang="x86asm">_fun@0  PROC
+        push    ebp
+        mov     ebp, esp
+        mov     eax, 1111638594                     ; 42424242H
+        mov     edx, 1094795585                     ; 41414141H
+        pop     ebp
+        ret     0
+_fun@0  ENDP
+</code></pre><p>And compiling it with <a href="https://godbolt.org/z/f968MKfG6">x86-64 icx 2022.0.0(Intel next-gen LLVM-based C/C++ compiler)</a> generates identical assembly code(minus creation of the base frame pointer controlled by compiler options):</p>
+<pre><code class="language-x86asm" data-lang="x86asm">fun:                                    # 
+        mov     eax, 1111638594
+        mov     edx, 1094795585
+        ret
+</code></pre><p>From the above, we can clearly see that the hard-coded 64-bit <em>integer value</em> is returned in <code>EDX:EAX</code>(the high-order <code>DWORD</code> is returned in <code>EDX</code> register and the low-order <code>DWORD</code> is returned in <code>EAX</code> register).</p>
+<p>Although it certainly can change from compiler to compiler, this is all governed by a standardized <em>calling convention</em>(here seen using <code>Microsoft stdcall</code>). On the 32-bit <code>x86</code> architecture, all of the <code>C/C++</code> <em>calling conventions</em> adhere to the following rule(s) for returning <strong><em>integral types</em></strong>:</p>
+<ol>
+<li><strong>sizeof(return value) &lt;= 32 bits</strong>, return value is stored in <code>EAX</code></li>
+<li><strong>32 bits &lt; sizeof(return value) &lt;= 64 bits</strong>, return value is stored in <code>EDX:EAX</code></li>
+</ol>
+<p>When <strong>sizeof(return value) &gt;= 64 bits</strong> or when returning large structures, the return value is stored in <code>EAX</code> register as a pointer to caller-allocated space on the stack that is passed to the callee as an implicit/hidden ﬁrst parameter on the stack.</p>
+<p>For returning <strong><em>floating-point types</em></strong>, either the <code>SSE registers(XMM)</code> are used or are returned via the <code>x87 FPU</code> register stack.</p>
+]]></content>
+        </item>
         
         <item>
             <title>Practical Reverse Engineering - Exercise 3, Page 17</title>

@@ -7,7 +7,18 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>This work is licensed under the GNU General Public License v3.0</copyright>
-    <lastBuildDate>Wed, 20 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lampreylabs.com/series/practical-reverse-engineering-exercise-solutions/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 21 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lampreylabs.com/series/practical-reverse-engineering-exercise-solutions/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Practical Reverse Engineering - Exercise 4, Page 17</title>
+      <link>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-4-page-17/</link>
+      <pubDate>Thu, 21 Jul 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-4-page-17/</guid>
+      <description>Table of Contents  Question Answer  Question In all of the calling conventions explained, the return value is stored in a 32-bit register(EAX). What happens when the return value does not fit in a 32-bit register? Write a program to experiment and evaluate your answer. Does the mechanism change from compiler to compiler?
+Answer Let us consider the following C code:
+extern &amp;#34;C&amp;#34; __declspec(noinline) unsigned __int64 __stdcall fun( void ) { return 0x4141414142424242; } Compiling it with x86 msvc v19.</description>
+    </item>
+    
     <item>
       <title>Practical Reverse Engineering - Exercise 3, Page 17</title>
       <link>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-3-page-17/</link>

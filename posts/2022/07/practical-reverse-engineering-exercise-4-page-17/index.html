@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:winterknife]">
+<meta name="description" content="Table of Contents  Question Answer  Question In all of the calling conventions explained, the return value is stored in a 32-bit register(EAX). What happens when the return value does not fit in a 32-bit register? Write a program to experiment and evaluate your answer. Does the mechanism change from compiler to compiler?
+Answer Let us consider the following C code:
+extern &amp;#34;C&amp;#34; __declspec(noinline) unsigned __int64 __stdcall fun( void ) { return 0x4141414142424242; } Compiling it with x86 msvc v19." />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-4-page-17/" />
+
+
+    <title>
+        
+            Practical Reverse Engineering - Exercise 4, Page 17 :: Lamprey Labs 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lampreylabs.com/main.ec5813d7f5ef5c707c6fe0e84133d038cc714ef28639df0a5bc50aa3b3697bab.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lampreylabs.com/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lampreylabs.com/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lampreylabs.com/favicon-16x16.png">
+    <link rel="manifest" href="https://lampreylabs.com/site.webmanifest">
+    <link rel="mask-icon" href="https://lampreylabs.com/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lampreylabs.com/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="Practical Reverse Engineering - Exercise 4, Page 17">
+<meta itemprop="description" content="Table of Contents  Question Answer  Question In all of the calling conventions explained, the return value is stored in a 32-bit register(EAX). What happens when the return value does not fit in a 32-bit register? Write a program to experiment and evaluate your answer. Does the mechanism change from compiler to compiler?
+Answer Let us consider the following C code:
+extern &#34;C&#34; __declspec(noinline) unsigned __int64 __stdcall fun( void ) { return 0x4141414142424242; } Compiling it with x86 msvc v19.">
+<meta itemprop="datePublished" content="2022-07-21T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-07-21T00:00:00+00:00" />
+<meta itemprop="wordCount" content="306">
+<meta itemprop="image" content="https://lampreylabs.com/"/>
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lampreylabs.com/"/>
+
+<meta name="twitter:title" content="Practical Reverse Engineering - Exercise 4, Page 17"/>
+<meta name="twitter:description" content="Table of Contents  Question Answer  Question In all of the calling conventions explained, the return value is stored in a 32-bit register(EAX). What happens when the return value does not fit in a 32-bit register? Write a program to experiment and evaluate your answer. Does the mechanism change from compiler to compiler?
+Answer Let us consider the following C code:
+extern &#34;C&#34; __declspec(noinline) unsigned __int64 __stdcall fun( void ) { return 0x4141414142424242; } Compiling it with x86 msvc v19."/>
+
+
+
+
+    <meta property="og:title" content="Practical Reverse Engineering - Exercise 4, Page 17" />
+<meta property="og:description" content="Table of Contents  Question Answer  Question In all of the calling conventions explained, the return value is stored in a 32-bit register(EAX). What happens when the return value does not fit in a 32-bit register? Write a program to experiment and evaluate your answer. Does the mechanism change from compiler to compiler?
+Answer Let us consider the following C code:
+extern &#34;C&#34; __declspec(noinline) unsigned __int64 __stdcall fun( void ) { return 0x4141414142424242; } Compiling it with x86 msvc v19." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-4-page-17/" />
+<meta property="og:image" content="https://lampreylabs.com/"/>
+<meta property="article:published_time" content="2022-07-21T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-07-21T00:00:00+00:00" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-3-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/" />
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2022-07-21 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+        
+<script type="text/javascript" src="https://lampreylabs.com/js/theme.min.ecee69b9833f1e32d9e500849eca9563ddf1ce26f44cb14860a0f0bcb39152cf8f5026e01375dc2eba0ce52b35e9d7b6d836883121015abbc2c36e1debae73f6.js" integrity="sha512-7O5puYM/HjLZ5QCEnsqVY93xzib0TLFIYKDwvLORUs&#43;PUCbgE3XcLroM5Ss16de22DaIMSEBWrvCw24d665z9g=="></script>
+    </head>
+
+    
+        <body>
+    
+
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lampreylabs.com/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark"> </span>
+            <span class="logo__text">\\??\C:</span>
+            <span class="logo__cursor" style=
+                  "
+                   background-color:#d60000;
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lampreylabs.com/about/">About</a></li><li><a href="https://lampreylabs.com/posts/">Posts</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+
+    <link rel="stylesheet" href="https://lampreylabs.com/highlight/styles/github-dark.min.css">
+    <script src="https://lampreylabs.com/highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "95b61106ac5648148e2c200c46f66894"}'></script>
+
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        2 minutes
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-4-page-17/">Practical Reverse Engineering - Exercise 4, Page 17</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#question">Question</a></li>
+<li><a href="#answer">Answer</a></li>
+</ul>
+<h2 id="question">Question</h2>
+<p>In all of the calling conventions explained, the return value is stored in a 32-bit register(<code>EAX</code>). What happens when the return value does not fit in a 32-bit register? Write a program to experiment and evaluate your answer. Does the mechanism change from compiler to compiler?</p>
+<h2 id="answer">Answer</h2>
+<p>Let us consider the following <code>C</code> code:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) <span style="color:#ee82ee">unsigned</span> <span style="color:#f00">__int64</span> <span style="color:#f00">__stdcall</span> fun(
+  <span style="color:#ee82ee">void</span>
+) {
+  <span style="color:#f00">return</span> <span style="color:#f60">0x4141414142424242</span>;
+}
+</code></pre></div><p>Compiling it with <a href="https://godbolt.org/z/K4ab7soGP">x86 msvc v19.latest C/C++ compiler on godbolt.org</a> generates the following assembly code:</p>
+<pre><code class="language-x86asm" data-lang="x86asm">_fun@0  PROC
+        push    ebp
+        mov     ebp, esp
+        mov     eax, 1111638594                     ; 42424242H
+        mov     edx, 1094795585                     ; 41414141H
+        pop     ebp
+        ret     0
+_fun@0  ENDP
+</code></pre><p>And compiling it with <a href="https://godbolt.org/z/f968MKfG6">x86-64 icx 2022.0.0(Intel next-gen LLVM-based C/C++ compiler)</a> generates identical assembly code(minus creation of the base frame pointer controlled by compiler options):</p>
+<pre><code class="language-x86asm" data-lang="x86asm">fun:                                    # 
+        mov     eax, 1111638594
+        mov     edx, 1094795585
+        ret
+</code></pre><p>From the above, we can clearly see that the hard-coded 64-bit <em>integer value</em> is returned in <code>EDX:EAX</code>(the high-order <code>DWORD</code> is returned in <code>EDX</code> register and the low-order <code>DWORD</code> is returned in <code>EAX</code> register).</p>
+<p>Although it certainly can change from compiler to compiler, this is all governed by a standardized <em>calling convention</em>(here seen using <code>Microsoft stdcall</code>). On the 32-bit <code>x86</code> architecture, all of the <code>C/C++</code> <em>calling conventions</em> adhere to the following rule(s) for returning <strong><em>integral types</em></strong>:</p>
+<ol>
+<li><strong>sizeof(return value) &lt;= 32 bits</strong>, return value is stored in <code>EAX</code></li>
+<li><strong>32 bits &lt; sizeof(return value) &lt;= 64 bits</strong>, return value is stored in <code>EDX:EAX</code></li>
+</ol>
+<p>When <strong>sizeof(return value) &gt;= 64 bits</strong> or when returning large structures, the return value is stored in <code>EAX</code> register as a pointer to caller-allocated space on the stack that is passed to the callee as an implicit/hidden ﬁrst parameter on the stack.</p>
+<p>For returning <strong><em>floating-point types</em></strong>, either the <code>SSE registers(XMM)</code> are used or are returned via the <code>x87 FPU</code> register stack.</p>
+
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        306 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2022-07-21 05:30
+        
+
+         
+          
+        
+      </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+
+        <div class="pagination__buttons">
+            
+
+            
+            <span class="button next">
+                <a href="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-3-page-17/">
+                    <span class="button__text">Practical Reverse Engineering - Exercise 3, Page 17</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    <div class="footer__inner">
+        <div class="footer__content">
+            
+            
+            
+            
+            <span>Copyright © 2022-present winterknife (@_winterknife_). All rights reserved.</span>
+        </div>
+    </div>
+    
+    
+    <div class="footer__inner">
+        <div class="footer__content">
+            <span>Other content copyright of their owners.</span>
+        </div>
+    </div>
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+<script type="text/javascript" src="https://lampreylabs.com/bundle.min.7a6340615fce8f6e63f622740e3da888ef0b05a6fc967dd77a93689c1058b20c34049840be586dd4e60db21d694d421bf794ccd5865b1bde6884638fc0993264.js" integrity="sha512-emNAYV/Oj25j9iJ0Dj2oiO8LBab8ln3XepNonBBYsgw0BJhAvlht1OYNsh1pTUIb95TM1YZbG95ohGOPwJkyZA=="></script>
+
+
+
+    </body>
+</html>
