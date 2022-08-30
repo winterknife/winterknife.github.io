@@ -1,7 +1,7 @@
 {
 	"version": 3,
 	"file": "main.css",
-	"sourceRoot": "/home/winterknife/Desktop/Lamprey Labs/lampreylabs.com",
+	"sourceRoot": "/home/winterknife/Desktop/Lamprey Labs/Website/lampreylabs.com",
 	"sources": [
 		"themes/hello-friend-ng/assets/scss/main.scss",
 		"themes/hello-friend-ng/assets/scss/_normalize.scss",

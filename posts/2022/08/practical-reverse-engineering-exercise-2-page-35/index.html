@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:winterknife]">
+<meta name="description" content="Table of Contents  Question Answer  Question In the example walk-through, we did a nearly one-to-one translation of the assembly code to C. As an exercise, re-decompile this whole function so that it looks more natural. What can you say about the developer’s skill level/experience? Explain your reasons. Can you do a better job?
+Answer We already saw a raw decompilation of the sample&amp;rsquo;s DllMain routine in the last exercise using the Hex-Rays decompiler but let&amp;rsquo;s further clean it up and polish it." />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lampreylabs.com/posts/2022/08/practical-reverse-engineering-exercise-2-page-35/" />
+
+
+    <title>
+        
+            Practical Reverse Engineering - Exercise 2, Page 35 :: Lamprey Labs 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lampreylabs.com/main.ec5813d7f5ef5c707c6fe0e84133d038cc714ef28639df0a5bc50aa3b3697bab.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lampreylabs.com/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lampreylabs.com/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lampreylabs.com/favicon-16x16.png">
+    <link rel="manifest" href="https://lampreylabs.com/site.webmanifest">
+    <link rel="mask-icon" href="https://lampreylabs.com/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lampreylabs.com/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="Practical Reverse Engineering - Exercise 2, Page 35">
+<meta itemprop="description" content="Table of Contents  Question Answer  Question In the example walk-through, we did a nearly one-to-one translation of the assembly code to C. As an exercise, re-decompile this whole function so that it looks more natural. What can you say about the developer’s skill level/experience? Explain your reasons. Can you do a better job?
+Answer We already saw a raw decompilation of the sample&rsquo;s DllMain routine in the last exercise using the Hex-Rays decompiler but let&rsquo;s further clean it up and polish it.">
+<meta itemprop="datePublished" content="2022-08-28T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-08-28T00:00:00+00:00" />
+<meta itemprop="wordCount" content="739">
+<meta itemprop="image" content="https://lampreylabs.com/"/>
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lampreylabs.com/"/>
+
+<meta name="twitter:title" content="Practical Reverse Engineering - Exercise 2, Page 35"/>
+<meta name="twitter:description" content="Table of Contents  Question Answer  Question In the example walk-through, we did a nearly one-to-one translation of the assembly code to C. As an exercise, re-decompile this whole function so that it looks more natural. What can you say about the developer’s skill level/experience? Explain your reasons. Can you do a better job?
+Answer We already saw a raw decompilation of the sample&rsquo;s DllMain routine in the last exercise using the Hex-Rays decompiler but let&rsquo;s further clean it up and polish it."/>
+
+
+
+
+    <meta property="og:title" content="Practical Reverse Engineering - Exercise 2, Page 35" />
+<meta property="og:description" content="Table of Contents  Question Answer  Question In the example walk-through, we did a nearly one-to-one translation of the assembly code to C. As an exercise, re-decompile this whole function so that it looks more natural. What can you say about the developer’s skill level/experience? Explain your reasons. Can you do a better job?
+Answer We already saw a raw decompilation of the sample&rsquo;s DllMain routine in the last exercise using the Hex-Rays decompiler but let&rsquo;s further clean it up and polish it." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://lampreylabs.com/posts/2022/08/practical-reverse-engineering-exercise-2-page-35/" />
+<meta property="og:image" content="https://lampreylabs.com/"/>
+<meta property="article:published_time" content="2022-08-28T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-08-28T00:00:00+00:00" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/08/practical-reverse-engineering-exercise-1-page-35/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-4-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-3-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/" />
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2022-08-28 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+        
+<script type="text/javascript" src="https://lampreylabs.com/js/theme.min.ecee69b9833f1e32d9e500849eca9563ddf1ce26f44cb14860a0f0bcb39152cf8f5026e01375dc2eba0ce52b35e9d7b6d836883121015abbc2c36e1debae73f6.js" integrity="sha512-7O5puYM/HjLZ5QCEnsqVY93xzib0TLFIYKDwvLORUs&#43;PUCbgE3XcLroM5Ss16de22DaIMSEBWrvCw24d665z9g=="></script>
+    </head>
+
+    
+        <body>
+    
+
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lampreylabs.com/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark"> </span>
+            <span class="logo__text">\\??\C:</span>
+            <span class="logo__cursor" style=
+                  "
+                   background-color:#d60000;
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lampreylabs.com/about/">About</a></li><li><a href="https://lampreylabs.com/posts/">Posts</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+
+    <link rel="stylesheet" href="https://lampreylabs.com/highlight/styles/github-dark.min.css">
+    <script src="https://lampreylabs.com/highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        4 minutes
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lampreylabs.com/posts/2022/08/practical-reverse-engineering-exercise-2-page-35/">Practical Reverse Engineering - Exercise 2, Page 35</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#question">Question</a></li>
+<li><a href="#answer">Answer</a></li>
+</ul>
+<h2 id="question">Question</h2>
+<p>In the example walk-through, we did a nearly one-to-one translation of
+the assembly code to C. As an exercise, re-decompile this whole function
+so that it looks more natural. What can you say about the developer’s skill level/experience? Explain your reasons. Can you do a better job?</p>
+<h2 id="answer">Answer</h2>
+<p>We already saw a <em>raw</em> decompilation of the sample&rsquo;s <code>DllMain</code> routine in the last exercise using the <code>Hex-Rays decompiler</code> but let&rsquo;s further clean it up and polish it.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#f00">typedef</span> <span style="color:#ee82ee">unsigned</span> <span style="color:#f00">__int16</span> WORD;  <span style="color:#0f0">// 2 byte
+</span><span style="color:#0f0"></span><span style="color:#f00">typedef</span> <span style="color:#ee82ee">unsigned</span> <span style="color:#f00">__int32</span> DWORD; <span style="color:#0f0">// 4 byte
+</span><span style="color:#0f0"></span>
+<span style="color:#0f0">// 0x6 bytes(sizeof)
+</span><span style="color:#0f0">// Seems original developer(s) was/were unaware of structure packing?
+</span><span style="color:#0f0"></span><span style="color:#e5e5e5">#pragma pack(push, 1)
+</span><span style="color:#e5e5e5"></span><span style="color:#f00">typedef</span> <span style="color:#f00">struct</span> _IDTR {
+    WORD  Limit; <span style="color:#0f0">// 0x0
+</span><span style="color:#0f0"></span>    <span style="color:#0f0">// WORD Pad; // 0x2, padding inserted by compiler for alignment in absence of byte packing
+</span><span style="color:#0f0"></span>    DWORD Base;  <span style="color:#0f0">// 0x2
+</span><span style="color:#0f0"></span>} IDTR, *PIDTR;
+<span style="color:#e5e5e5">#pragma pack(pop)
+</span><span style="color:#e5e5e5"></span>
+BOOL <span style="color:#f00">__stdcall</span> <span style="color:#ff0">DllMain</span>(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
+  <span style="color:#0f0">// Init local variables
+</span><span style="color:#0f0"></span>  IDTR idtr = { <span style="color:#f60">0</span> };
+  PROCESSENTRY32 processentry32;
+  HANDLE hProcessSnapshot = NULL;
+  DWORD dwParentPid = <span style="color:#f60">0</span>;
+  DWORD dwPid = <span style="color:#f60">0</span>;
+  BOOL bRet = FALSE;
+
+  <span style="color:#0f0">// Store the contents of the IDTR to memory
+</span><span style="color:#0f0"></span>  __sidt(&amp;idtr);
+
+  <span style="color:#0f0">// Check if IDT base address falls within range = 0x8003F400 to 0x80047400, if TRUE then return FALSE to fail DLL load else proceed with execution
+</span><span style="color:#0f0"></span>  <span style="color:#0f0">// On x86 Windows XP, IDT is located at KVA = 0x8003f400 for CPU 0
+</span><span style="color:#0f0"></span>  <span style="color:#f00">if</span> ((idtr.Base &gt; <span style="color:#f60">0x8003F400</span>) &amp;&amp; (idtr.Base &lt; <span style="color:#f60">0x80047400</span>))
+    <span style="color:#f00">return</span> FALSE;
+
+  <span style="color:#0f0">// Zero initialize PROCESSENTRY32 structure(in a weird manner for some reason), also why?
+</span><span style="color:#0f0"></span>  processentry32.dwSize = <span style="color:#f60">0</span>;
+  __stosd(&amp;processentry32.cntUsage, <span style="color:#f60">0</span>, (<span style="color:#f00">sizeof</span>(processentry32) - <span style="color:#f60">4</span>));
+
+  <span style="color:#0f0">// Take a snapshot of all the processes in the system
+</span><span style="color:#0f0"></span>  hProcessSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, <span style="color:#f60">0</span>);
+  <span style="color:#f00">if</span> (hProcessSnapshot == INVALID_HANDLE_VALUE)
+    <span style="color:#f00">return</span> FALSE;
+
+  <span style="color:#0f0">// Set the size of the structure before using it
+</span><span style="color:#0f0"></span>  processentry32.dwSize = <span style="color:#f00">sizeof</span>(PROCESSENTRY32); <span style="color:#0f0">// 0x128
+</span><span style="color:#0f0"></span>
+  <span style="color:#0f0">// Retrieve information about the first process and exit if unsuccessful
+</span><span style="color:#0f0"></span>  <span style="color:#f00">if</span> (Process32First(hProcessSnapshot, &amp;processentry32) == <span style="color:#f60">0</span>)
+    <span style="color:#f00">return</span> FALSE; <span style="color:#0f0">// memory leak here
+</span><span style="color:#0f0"></span>
+  <span style="color:#0f0">// Now, walk the snapshot of processes and check if a process with image name = &#34;explorer.exe&#34; exists
+</span><span style="color:#0f0"></span>  <span style="color:#f00">do</span> {
+    <span style="color:#f00">if</span> (_stricmp(processentry32.szExeFile, <span style="color:#87ceeb">&#34;explorer.exe&#34;</span>) == <span style="color:#f60">0</span>)
+      <span style="color:#f00">break</span>;
+  } <span style="color:#f00">while</span>(Process32Next(hProcessSnapshot, &amp;processentry32));
+
+  <span style="color:#0f0">// Get parent process ID and process ID
+</span><span style="color:#0f0"></span>  dwParentPid = processentry32.th32ParentProcessID;
+  dwPid = processentry32.th32ProcessID;
+  <span style="color:#f00">if</span> (dwPid == dwParentPid) <span style="color:#0f0">// why?
+</span><span style="color:#0f0"></span>    <span style="color:#f00">return</span> FALSE; <span style="color:#0f0">// memory leak here
+</span><span style="color:#0f0"></span>
+  <span style="color:#0f0">// Perform actions based on the reason for calling
+</span><span style="color:#0f0"></span>  <span style="color:#f00">switch</span>(fdwReason) {
+    <span style="color:#0f0">// The DLL is being loaded into the UVAS of the current process
+</span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_PROCESS_ATTACH:
+      <span style="color:#0f0">// Create a new thread in local process with start address = 0x100032D0
+</span><span style="color:#0f0"></span>      CreateThread(NULL, <span style="color:#f60">0</span>, (LPTHREAD_START_ROUTINE)<span style="color:#f60">0x100032D0</span>, NULL, <span style="color:#f60">0</span>, NULL);
+      bRet = TRUE;
+      <span style="color:#f00">break</span>;
+    <span style="color:#0f0">// The current process is creating a new thread
+</span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_THREAD_ATTACH:
+    <span style="color:#0f0">// A thread is exiting cleanly
+</span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_THREAD_DETACH:
+      bRet = TRUE;
+      <span style="color:#f00">break</span>;
+    <span style="color:#0f0">// The DLL is being unloaded from the UVAS of the calling process
+</span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_PROCESS_DETACH:
+      bRet = FALSE;
+      <span style="color:#f00">break</span>;
+  }
+
+  <span style="color:#f00">return</span> bRet; <span style="color:#0f0">// memory leak here
+</span><span style="color:#0f0"></span>}
+</code></pre></div><p>Regarding the developer&rsquo;s skill level/experience, we can infer that they were probably not very familiar with <code>Win32</code> <code>API</code> programming and didn&rsquo;t have a lot of experience in it(or writing software targeting multi-processor systems for that matter) based on the following points:</p>
+<ol>
+<li>Most modern <code>CPUs</code> are multi-core and each logical processor has its own <code>IDTR</code> but the code doesn&rsquo;t account for that. Instead, it just assumes that it will always run on <code>CPU 0</code> for what appears to be detection of <code>Windows XP</code>-based <code>VMs</code>. What happens if the thread runs the code on a different processor? Furthermore, it doesn&rsquo;t perform any <code>Windows</code> version checks for this purpose rendering it quite ineffective.</li>
+<li>The <code>PROCESSENTRY32</code> structure is zero-initialized(in a weird manner nonetheless) when there&rsquo;s no requirement for that.</li>
+<li>There exists some handle leaks due to the fact that the developer failed to close the handle to the process snapshot object as returned by <code>kernel32!CreateToolhelp32Snapshot()</code> as well as the handle to the thread object that is returned on a successful call to <code>kernel32!CreateThread()</code> while returning from the <code>DllMain</code> routine.</li>
+<li>Finally, it is a bit unclear to us as to why the malware might be checking whether <code>explorer.exe</code> process exists yet not taking any definitive action based on the fact.</li>
+</ol>
+<p>It should be worth mentioning that is hard to deduce the developer&rsquo;s skill level based on the limited data that we have, however, it is no mystery that this malware sample is not particularly sophisticated. Au contraire, it&rsquo;s of the garden variety replete with programming and design mistakes.</p>
+<p>Could we have done a better job than this?</p>
+<p>Yes. ;)</p>
+
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        739 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2022-08-28 05:30
+        
+
+         
+          
+        
+      </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+
+        <div class="pagination__buttons">
+            
+
+            
+            <span class="button next">
+                <a href="https://lampreylabs.com/posts/2022/08/practical-reverse-engineering-exercise-1-page-35/">
+                    <span class="button__text">Practical Reverse Engineering - Exercise 1, Page 35</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    <div class="footer__inner">
+        <div class="footer__content">
+            
+            
+            
+            
+            <span>Copyright © 2022-present winterknife (@_winterknife_). All rights reserved.</span>
+        </div>
+    </div>
+    
+    
+    <div class="footer__inner">
+        <div class="footer__content">
+            <span>Other content copyright of their owners.</span>
+        </div>
+    </div>
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+<script type="text/javascript" src="https://lampreylabs.com/bundle.min.7a6340615fce8f6e63f622740e3da888ef0b05a6fc967dd77a93689c1058b20c34049840be586dd4e60db21d694d421bf794ccd5865b1bde6884638fc0993264.js" integrity="sha512-emNAYV/Oj25j9iJ0Dj2oiO8LBab8ln3XepNonBBYsgw0BJhAvlht1OYNsh1pTUIb95TM1YZbG95ohGOPwJkyZA=="></script>
+
+
+
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "95b61106ac5648148e2c200c46f66894"}'></script>
+    </body>
+</html>
