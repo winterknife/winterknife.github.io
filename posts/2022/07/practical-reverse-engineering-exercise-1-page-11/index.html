@@ -26,7 +26,7 @@
 
 
 
-<link rel="stylesheet" href="https://lampreylabs.com/main.ec5813d7f5ef5c707c6fe0e84133d038cc714ef28639df0a5bc50aa3b3697bab.css">
+<link rel="stylesheet" href="https://lampreylabs.com/main.622439d48fe0092d9a12ec1b2dad86d82d17a4d0840deb6c388737fff1d8cd8b.css">
 
 
 
@@ -41,16 +41,10 @@
 
 <meta itemprop="name" content="Practical Reverse Engineering - Exercise 1, Page 11">
 <meta itemprop="description" content="Table of Contents  Question Answer  Question This function uses a combination SCAS and STOS to do its work. First, explain what is the type of the [EBP&#43;8] and [EBP&#43;C] in line 1 and 8, respectively. Next, explain what this snippet does.
-01: mov edi, [ebp &#43; 8] 02: mov edx, edi 03: xor eax, eax 04: or ecx, 0FFFFFFFFh 05: repne scasb 06: add ecx, 2 07: neg ecx 08: mov al, [ebp &#43; 0Ch] 09: mov edi, edx 10: rep stosb 11: mov eax, edx Answer [EBP &#43; 8h] appears to be a char buffer pointer/PCHAR(size = 4 bytes) since it is loaded into EDI register which is then implicitly used by scasb instruction with repne prefix as the memory operand address to compare for a particular byte value specified by AL register.">
-<meta itemprop="datePublished" content="2022-07-13T00:00:00+00:00" />
+01: mov edi, [ebp &#43; 8] 02: mov edx, edi 03: xor eax, eax 04: or ecx, 0FFFFFFFFh 05: repne scasb 06: add ecx, 2 07: neg ecx 08: mov al, [ebp &#43; 0Ch] 09: mov edi, edx 10: rep stosb 11: mov eax, edx Answer [EBP &#43; 8h] appears to be a char buffer pointer/PCHAR(size = 4 bytes) since it is loaded into EDI register which is then implicitly used by scasb instruction with repne prefix as the memory operand address to compare for a particular byte value specified by AL register."><meta itemprop="datePublished" content="2022-07-13T00:00:00+00:00" />
 <meta itemprop="dateModified" content="2022-07-13T00:00:00+00:00" />
-<meta itemprop="wordCount" content="527">
-<meta itemprop="image" content="https://lampreylabs.com/"/>
-
-
-
+<meta itemprop="wordCount" content="527"><meta itemprop="image" content="https://lampreylabs.com/"/>
 <meta itemprop="keywords" content="" />
-
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://lampreylabs.com/"/>
 
@@ -65,10 +59,10 @@
 <meta property="og:description" content="Table of Contents  Question Answer  Question This function uses a combination SCAS and STOS to do its work. First, explain what is the type of the [EBP&#43;8] and [EBP&#43;C] in line 1 and 8, respectively. Next, explain what this snippet does.
 01: mov edi, [ebp &#43; 8] 02: mov edx, edi 03: xor eax, eax 04: or ecx, 0FFFFFFFFh 05: repne scasb 06: add ecx, 2 07: neg ecx 08: mov al, [ebp &#43; 0Ch] 09: mov edi, edx 10: rep stosb 11: mov eax, edx Answer [EBP &#43; 8h] appears to be a char buffer pointer/PCHAR(size = 4 bytes) since it is loaded into EDI register which is then implicitly used by scasb instruction with repne prefix as the memory operand address to compare for a particular byte value specified by AL register." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/" />
-<meta property="og:image" content="https://lampreylabs.com/"/>
+<meta property="og:url" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/" /><meta property="og:image" content="https://lampreylabs.com/"/><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-07-13T00:00:00+00:00" />
-<meta property="article:modified_time" content="2022-07-13T00:00:00+00:00" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/08/practical-reverse-engineering-exercise-2-page-35/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/08/practical-reverse-engineering-exercise-1-page-35/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-4-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-3-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/" />
+<meta property="article:modified_time" content="2022-07-13T00:00:00+00:00" />
+<meta property="og:see_also" content="https://lampreylabs.com/posts/2022/08/practical-reverse-engineering-exercise-2-page-35/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/08/practical-reverse-engineering-exercise-1-page-35/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-4-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-3-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-2-page-17/" /><meta property="og:see_also" content="https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-17/" />
 
 
 
@@ -88,7 +82,7 @@
 
 
         
-<script type="text/javascript" src="https://lampreylabs.com/js/theme.min.ecee69b9833f1e32d9e500849eca9563ddf1ce26f44cb14860a0f0bcb39152cf8f5026e01375dc2eba0ce52b35e9d7b6d836883121015abbc2c36e1debae73f6.js" integrity="sha512-7O5puYM/HjLZ5QCEnsqVY93xzib0TLFIYKDwvLORUs&#43;PUCbgE3XcLroM5Ss16de22DaIMSEBWrvCw24d665z9g=="></script>
+<script type="text/javascript" src="https://lampreylabs.com/js/theme.min.c88c7372b7adb5cad2d998e1be999f784624f77dae83e787a732633b5e7f9ec8b69e6ead9eed7ec3da52d0c238579475f12decf747ed4e32b71f54c805c5eef8.js" integrity="sha512-yIxzcrettcrS2ZjhvpmfeEYk932ug&#43;eHpzJjO15/nsi2nm6tnu1&#43;w9pS0MI4V5R18S3s90ftTjK3H1TIBcXu&#43;A=="></script>
     </head>
 
     
@@ -172,7 +166,7 @@
 </ul>
 <h2 id="question">Question</h2>
 <p>This function uses a combination <code>SCAS</code> and <code>STOS</code> to do its work. First, explain what is the type of the <code>[EBP+8]</code> and <code>[EBP+C]</code> in line 1 and 8, respectively. Next, explain what this snippet does.</p>
-<pre><code class="language-x86asm" data-lang="x86asm">01: mov edi, [ebp + 8]
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">01: mov edi, [ebp + 8]
 02: mov edx, edi
 03: xor eax, eax
 04: or ecx, 0FFFFFFFFh
@@ -198,13 +192,13 @@
 <p>Line 10 uses the <code>stosb</code> instruction to store the byte(given by <code>AL</code>) into the string(pointed to by <code>EDI</code>) one byte at a time. <code>rep</code> prefix is used to indicate to keep setting until <code>ECX</code> decrements to 0(i.e. the entire length of the string).</p>
 <p>Line 11 sets <code>EAX</code> with <code>EDX</code> now pointing to the overwritten string. <code>EAX</code> register holds the return value when returning from a procedure.</p>
 <p>Based on all of the above, we can construct a decompilation of the assembly snippet as follows:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) PCHAR <span style="color:#f00">__cdecl</span> asm_func(
-  _In_ PCHAR pchBuffer,
-  _In_ CHAR  chValue
-) {
-  <span style="color:#f00">return</span> (PCHAR)memset(pchBuffer, chValue, strlen(pchBuffer));
-}
-</code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) PCHAR <span style="color:#f00">__cdecl</span> asm_func(
+</span></span><span style="display:flex;"><span>  _In_ PCHAR pchBuffer,
+</span></span><span style="display:flex;"><span>  _In_ CHAR  chValue
+</span></span><span style="display:flex;"><span>) {
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">return</span> (PCHAR)memset(pchBuffer, chValue, strlen(pchBuffer));
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div>
       </div>
     </article>
 
@@ -297,7 +291,7 @@
         
 
 
-<script type="text/javascript" src="https://lampreylabs.com/bundle.min.7a6340615fce8f6e63f622740e3da888ef0b05a6fc967dd77a93689c1058b20c34049840be586dd4e60db21d694d421bf794ccd5865b1bde6884638fc0993264.js" integrity="sha512-emNAYV/Oj25j9iJ0Dj2oiO8LBab8ln3XepNonBBYsgw0BJhAvlht1OYNsh1pTUIb95TM1YZbG95ohGOPwJkyZA=="></script>
+<script type="text/javascript" src="https://lampreylabs.com/bundle.min.864ac347d062ddaee45e59943b606afed174a525acfa17c863ad38b803d4f4b34523ced48999cb7505d526e80180e1e27b04edd16ad2232fc8ec6f912e394ee6.js" integrity="sha512-hkrDR9Bi3a7kXlmUO2Bq/tF0pSWs&#43;hfIY604uAPU9LNFI87UiZnLdQXVJugBgOHiewTt0WrSIy/I7G&#43;RLjlO5g=="></script>
 
 
 

@@ -28,87 +28,87 @@ the assembly code to C. As an exercise, re-decompile this whole function
 so that it looks more natural. What can you say about the developer’s skill level/experience? Explain your reasons. Can you do a better job?</p>
 <h2 id="answer">Answer</h2>
 <p>We already saw a <em>raw</em> decompilation of the sample&rsquo;s <code>DllMain</code> routine in the last exercise using the <code>Hex-Rays decompiler</code> but let&rsquo;s further clean it up and polish it.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#f00">typedef</span> <span style="color:#ee82ee">unsigned</span> <span style="color:#f00">__int16</span> WORD;  <span style="color:#0f0">// 2 byte
-</span><span style="color:#0f0"></span><span style="color:#f00">typedef</span> <span style="color:#ee82ee">unsigned</span> <span style="color:#f00">__int32</span> DWORD; <span style="color:#0f0">// 4 byte
-</span><span style="color:#0f0"></span>
-<span style="color:#0f0">// 0x6 bytes(sizeof)
-</span><span style="color:#0f0">// Seems original developer(s) was/were unaware of structure packing?
-</span><span style="color:#0f0"></span><span style="color:#e5e5e5">#pragma pack(push, 1)
-</span><span style="color:#e5e5e5"></span><span style="color:#f00">typedef</span> <span style="color:#f00">struct</span> _IDTR {
-    WORD  Limit; <span style="color:#0f0">// 0x0
-</span><span style="color:#0f0"></span>    <span style="color:#0f0">// WORD Pad; // 0x2, padding inserted by compiler for alignment in absence of byte packing
-</span><span style="color:#0f0"></span>    DWORD Base;  <span style="color:#0f0">// 0x2
-</span><span style="color:#0f0"></span>} IDTR, *PIDTR;
-<span style="color:#e5e5e5">#pragma pack(pop)
-</span><span style="color:#e5e5e5"></span>
-BOOL <span style="color:#f00">__stdcall</span> <span style="color:#ff0">DllMain</span>(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
-  <span style="color:#0f0">// Init local variables
-</span><span style="color:#0f0"></span>  IDTR idtr = { <span style="color:#f60">0</span> };
-  PROCESSENTRY32 processentry32;
-  HANDLE hProcessSnapshot = NULL;
-  DWORD dwParentPid = <span style="color:#f60">0</span>;
-  DWORD dwPid = <span style="color:#f60">0</span>;
-  BOOL bRet = FALSE;
-
-  <span style="color:#0f0">// Store the contents of the IDTR to memory
-</span><span style="color:#0f0"></span>  __sidt(&amp;idtr);
-
-  <span style="color:#0f0">// Check if IDT base address falls within range = 0x8003F400 to 0x80047400, if TRUE then return FALSE to fail DLL load else proceed with execution
-</span><span style="color:#0f0"></span>  <span style="color:#0f0">// On x86 Windows XP, IDT is located at KVA = 0x8003f400 for CPU 0
-</span><span style="color:#0f0"></span>  <span style="color:#f00">if</span> ((idtr.Base &gt; <span style="color:#f60">0x8003F400</span>) &amp;&amp; (idtr.Base &lt; <span style="color:#f60">0x80047400</span>))
-    <span style="color:#f00">return</span> FALSE;
-
-  <span style="color:#0f0">// Zero initialize PROCESSENTRY32 structure(in a weird manner for some reason), also why?
-</span><span style="color:#0f0"></span>  processentry32.dwSize = <span style="color:#f60">0</span>;
-  __stosd(&amp;processentry32.cntUsage, <span style="color:#f60">0</span>, (<span style="color:#f00">sizeof</span>(processentry32) - <span style="color:#f60">4</span>));
-
-  <span style="color:#0f0">// Take a snapshot of all the processes in the system
-</span><span style="color:#0f0"></span>  hProcessSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, <span style="color:#f60">0</span>);
-  <span style="color:#f00">if</span> (hProcessSnapshot == INVALID_HANDLE_VALUE)
-    <span style="color:#f00">return</span> FALSE;
-
-  <span style="color:#0f0">// Set the size of the structure before using it
-</span><span style="color:#0f0"></span>  processentry32.dwSize = <span style="color:#f00">sizeof</span>(PROCESSENTRY32); <span style="color:#0f0">// 0x128
-</span><span style="color:#0f0"></span>
-  <span style="color:#0f0">// Retrieve information about the first process and exit if unsuccessful
-</span><span style="color:#0f0"></span>  <span style="color:#f00">if</span> (Process32First(hProcessSnapshot, &amp;processentry32) == <span style="color:#f60">0</span>)
-    <span style="color:#f00">return</span> FALSE; <span style="color:#0f0">// memory leak here
-</span><span style="color:#0f0"></span>
-  <span style="color:#0f0">// Now, walk the snapshot of processes and check if a process with image name = &#34;explorer.exe&#34; exists
-</span><span style="color:#0f0"></span>  <span style="color:#f00">do</span> {
-    <span style="color:#f00">if</span> (_stricmp(processentry32.szExeFile, <span style="color:#87ceeb">&#34;explorer.exe&#34;</span>) == <span style="color:#f60">0</span>)
-      <span style="color:#f00">break</span>;
-  } <span style="color:#f00">while</span>(Process32Next(hProcessSnapshot, &amp;processentry32));
-
-  <span style="color:#0f0">// Get parent process ID and process ID
-</span><span style="color:#0f0"></span>  dwParentPid = processentry32.th32ParentProcessID;
-  dwPid = processentry32.th32ProcessID;
-  <span style="color:#f00">if</span> (dwPid == dwParentPid) <span style="color:#0f0">// why?
-</span><span style="color:#0f0"></span>    <span style="color:#f00">return</span> FALSE; <span style="color:#0f0">// memory leak here
-</span><span style="color:#0f0"></span>
-  <span style="color:#0f0">// Perform actions based on the reason for calling
-</span><span style="color:#0f0"></span>  <span style="color:#f00">switch</span>(fdwReason) {
-    <span style="color:#0f0">// The DLL is being loaded into the UVAS of the current process
-</span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_PROCESS_ATTACH:
-      <span style="color:#0f0">// Create a new thread in local process with start address = 0x100032D0
-</span><span style="color:#0f0"></span>      CreateThread(NULL, <span style="color:#f60">0</span>, (LPTHREAD_START_ROUTINE)<span style="color:#f60">0x100032D0</span>, NULL, <span style="color:#f60">0</span>, NULL);
-      bRet = TRUE;
-      <span style="color:#f00">break</span>;
-    <span style="color:#0f0">// The current process is creating a new thread
-</span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_THREAD_ATTACH:
-    <span style="color:#0f0">// A thread is exiting cleanly
-</span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_THREAD_DETACH:
-      bRet = TRUE;
-      <span style="color:#f00">break</span>;
-    <span style="color:#0f0">// The DLL is being unloaded from the UVAS of the calling process
-</span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_PROCESS_DETACH:
-      bRet = FALSE;
-      <span style="color:#f00">break</span>;
-  }
-
-  <span style="color:#f00">return</span> bRet; <span style="color:#0f0">// memory leak here
-</span><span style="color:#0f0"></span>}
-</code></pre></div><p>Regarding the developer&rsquo;s skill level/experience, we can infer that they were probably not very familiar with <code>Win32</code> <code>API</code> programming and didn&rsquo;t have a lot of experience in it(or writing software targeting multi-processor systems for that matter) based on the following points:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#f00">typedef</span> <span style="color:#ee82ee">unsigned</span> <span style="color:#f00">__int16</span> WORD;  <span style="color:#0f0">// 2 byte
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span><span style="color:#f00">typedef</span> <span style="color:#ee82ee">unsigned</span> <span style="color:#f00">__int32</span> DWORD; <span style="color:#0f0">// 4 byte
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">// 0x6 bytes(sizeof)
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0">// Seems original developer(s) was/were unaware of structure packing?
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span><span style="color:#e5e5e5">#pragma pack(push, 1)
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5"></span><span style="color:#f00">typedef</span> <span style="color:#f00">struct</span> _IDTR {
+</span></span><span style="display:flex;"><span>    WORD  Limit; <span style="color:#0f0">// 0x0
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#0f0">// WORD Pad; // 0x2, padding inserted by compiler for alignment in absence of byte packing
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    DWORD Base;  <span style="color:#0f0">// 0x2
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>} IDTR, *PIDTR;
+</span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#pragma pack(pop)
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5"></span>
+</span></span><span style="display:flex;"><span>BOOL <span style="color:#f00">__stdcall</span> <span style="color:#ff0">DllMain</span>(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
+</span></span><span style="display:flex;"><span>  <span style="color:#0f0">// Init local variables
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  IDTR idtr = { <span style="color:#f60">0</span> };
+</span></span><span style="display:flex;"><span>  PROCESSENTRY32 processentry32;
+</span></span><span style="display:flex;"><span>  HANDLE hProcessSnapshot = NULL;
+</span></span><span style="display:flex;"><span>  DWORD dwParentPid = <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>  DWORD dwPid = <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>  BOOL bRet = FALSE;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0f0">// Store the contents of the IDTR to memory
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  __sidt(&amp;idtr);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0f0">// Check if IDT base address falls within range = 0x8003F400 to 0x80047400, if TRUE then return FALSE to fail DLL load else proceed with execution
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  <span style="color:#0f0">// On x86 Windows XP, IDT is located at KVA = 0x8003f400 for CPU 0
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  <span style="color:#f00">if</span> ((idtr.Base &gt; <span style="color:#f60">0x8003F400</span>) &amp;&amp; (idtr.Base &lt; <span style="color:#f60">0x80047400</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">return</span> FALSE;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0f0">// Zero initialize PROCESSENTRY32 structure(in a weird manner for some reason), also why?
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  processentry32.dwSize = <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>  __stosd(&amp;processentry32.cntUsage, <span style="color:#f60">0</span>, (<span style="color:#f00">sizeof</span>(processentry32) - <span style="color:#f60">4</span>));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0f0">// Take a snapshot of all the processes in the system
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  hProcessSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, <span style="color:#f60">0</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">if</span> (hProcessSnapshot == INVALID_HANDLE_VALUE)
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">return</span> FALSE;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0f0">// Set the size of the structure before using it
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  processentry32.dwSize = <span style="color:#f00">sizeof</span>(PROCESSENTRY32); <span style="color:#0f0">// 0x128
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0f0">// Retrieve information about the first process and exit if unsuccessful
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  <span style="color:#f00">if</span> (Process32First(hProcessSnapshot, &amp;processentry32) == <span style="color:#f60">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">return</span> FALSE; <span style="color:#0f0">// memory leak here
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0f0">// Now, walk the snapshot of processes and check if a process with image name = &#34;explorer.exe&#34; exists
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  <span style="color:#f00">do</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (_stricmp(processentry32.szExeFile, <span style="color:#87ceeb">&#34;explorer.exe&#34;</span>) == <span style="color:#f60">0</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#f00">break</span>;
+</span></span><span style="display:flex;"><span>  } <span style="color:#f00">while</span>(Process32Next(hProcessSnapshot, &amp;processentry32));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0f0">// Get parent process ID and process ID
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  dwParentPid = processentry32.th32ParentProcessID;
+</span></span><span style="display:flex;"><span>  dwPid = processentry32.th32ProcessID;
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">if</span> (dwPid == dwParentPid) <span style="color:#0f0">// why?
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">return</span> FALSE; <span style="color:#0f0">// memory leak here
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0f0">// Perform actions based on the reason for calling
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  <span style="color:#f00">switch</span>(fdwReason) {
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// The DLL is being loaded into the UVAS of the current process
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_PROCESS_ATTACH:
+</span></span><span style="display:flex;"><span>      <span style="color:#0f0">// Create a new thread in local process with start address = 0x100032D0
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>      CreateThread(NULL, <span style="color:#f60">0</span>, (LPTHREAD_START_ROUTINE)<span style="color:#f60">0x100032D0</span>, NULL, <span style="color:#f60">0</span>, NULL);
+</span></span><span style="display:flex;"><span>      bRet = TRUE;
+</span></span><span style="display:flex;"><span>      <span style="color:#f00">break</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// The current process is creating a new thread
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_THREAD_ATTACH:
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// A thread is exiting cleanly
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_THREAD_DETACH:
+</span></span><span style="display:flex;"><span>      bRet = TRUE;
+</span></span><span style="display:flex;"><span>      <span style="color:#f00">break</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// The DLL is being unloaded from the UVAS of the calling process
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">case</span> DLL_PROCESS_DETACH:
+</span></span><span style="display:flex;"><span>      bRet = FALSE;
+</span></span><span style="display:flex;"><span>      <span style="color:#f00">break</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">return</span> bRet; <span style="color:#0f0">// memory leak here
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>}
+</span></span></code></pre></div><p>Regarding the developer&rsquo;s skill level/experience, we can infer that they were probably not very familiar with <code>Win32</code> <code>API</code> programming and didn&rsquo;t have a lot of experience in it(or writing software targeting multi-processor systems for that matter) based on the following points:</p>
 <ol>
 <li>Most modern <code>CPUs</code> are multi-core and each logical processor has its own <code>IDTR</code> but the code doesn&rsquo;t account for that. Instead, it just assumes that it will always run on <code>CPU 0</code> for what appears to be detection of <code>Windows XP</code>-based <code>VMs</code>. What happens if the thread runs the code on a different processor? Furthermore, it doesn&rsquo;t perform any <code>Windows</code> version checks for this purpose rendering it quite ineffective.</li>
 <li>The <code>PROCESSENTRY32</code> structure is zero-initialized(in a weird manner nonetheless) when there&rsquo;s no requirement for that.</li>
@@ -143,7 +143,7 @@ parameters and local variables.</p>
 <p>Here is the <code>VirusTotal</code> link to the malware sample in question:
 <a href="https://www.virustotal.com/gui/file/2bef7e6b17643300cd8d98dd90a4c3cb0a051ee03272166c7d9589aa62652f6c/detection">wship4.dll</a></p>
 <p>And here is the raw <em>disassembly</em> of the <code>DllMain</code> routine as generated by <code>IDA Pro</code> for reference:</p>
-<pre><code class="language-x86asm" data-lang="x86asm">.text:10001C60                                                  ; =============== S U B R O U T I N E =======================================
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">.text:10001C60                                                  ; =============== S U B R O U T I N E =======================================
 .text:10001C60
 .text:10001C60                                                  ; Attributes: bp-based frame
 .text:10001C60
@@ -176,7 +176,7 @@ parameters and local variables.</p>
 .text:10001C88                                                  loc_10001C88:                           ; CODE XREF: DllMain(x,x,x)+16↑j
 .text:10001C88                                                                                          ; DllMain(x,x,x)+1D↑j
 .text:10001C88 138 33 C0                                                        xor     eax, eax
-.text:10001C8A 138 B9 49 00 00 00                                               mov     ecx, 49h ; 'I'
+.text:10001C8A 138 B9 49 00 00 00                                               mov     ecx, 49h ; &#39;I&#39;
 .text:10001C8F 138 8D BD D4 FE FF FF                                            lea     edi, [ebp+pe.cntUsage]
 .text:10001C95 138 C7 85 D0 FE FF FF 00 00 00 00                                mov     [ebp+pe.dwSize], 0
 .text:10001C9F 138 50                                                           push    eax             ; th32ProcessID
@@ -204,7 +204,7 @@ parameters and local variables.</p>
 .text:10001CD3 13C 74 4F                                                        jz      short loc_10001D24
 .text:10001CD5 13C 8B 35 C0 50 00 10                                            mov     esi, ds:_stricmp
 .text:10001CDB 13C 8D 8D F4 FE FF FF                                            lea     ecx, [ebp+pe.szExeFile]
-.text:10001CE1 13C 68 50 7C 00 10                                               push    offset String2  ; &quot;explorer.exe&quot;
+.text:10001CE1 13C 68 50 7C 00 10                                               push    offset String2  ; &#34;explorer.exe&#34;
 .text:10001CE6 140 51                                                           push    ecx             ; String1
 .text:10001CE7 144 FF D6                                                        call    esi ; _stricmp
 .text:10001CE9 144 83 C4 08                                                     add     esp, 8
@@ -219,7 +219,7 @@ parameters and local variables.</p>
 .text:10001CFD 13C 85 C0                                                        test    eax, eax
 .text:10001CFF 13C 74 23                                                        jz      short loc_10001D24
 .text:10001D01 13C 8D 85 F4 FE FF FF                                            lea     eax, [ebp+pe.szExeFile]
-.text:10001D07 13C 68 50 7C 00 10                                               push    offset String2  ; &quot;explorer.exe&quot;
+.text:10001D07 13C 68 50 7C 00 10                                               push    offset String2  ; &#34;explorer.exe&#34;
 .text:10001D0C 140 50                                                           push    eax             ; String1
 .text:10001D0D 144 FF D6                                                        call    esi ; _stricmp
 .text:10001D0F 144 83 C4 08                                                     add     esp, 8
@@ -274,105 +274,105 @@ parameters and local variables.</p>
 <p>Note how <code>0x130</code> worth of space is allocated on the stack in what can only be presumed is for storing the local variables. Also, note that the offsets are now relative to the base frame pointer.</p>
 <p>We can see from the above disassembly that one of the local variables is a structure of type <a href="https://docs.microsoft.com/en-us/windows/win32/api/tlhelp32/ns-tlhelp32-processentry32?redirectedfrom=MSDN">PROCESSENTRY32</a>(which <code>IDA</code> rather ambiguously has named <code>pe</code>). Now, we know that <code>sizeof(pe) == 0x128</code> bytes but the program allocated <code>0x130</code> bytes worth of space on the stack for local variables. That must mean that the second local variable(<code>var_8</code>) is of size <code>0x8</code> bytes.</p>
 <p>A little later into the disassembly just after the function prologue, we can see that <code>var_8</code> is indeed used to store the contents of the <code>IDTR</code> using the <a href="https://namazso.github.io/x86/html/SIDT.html">sidt</a> instruction. In <code>x86</code> <code>nt</code>, the data structure used to represent the contents of the <code>GDT</code> and <code>IDT</code> registers is defined like so:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#0f0">// 0x8 bytes(sizeof)
-</span><span style="color:#0f0"></span><span style="color:#f00">typedef</span> <span style="color:#f00">struct</span> _DESCRIPTOR {
-    USHORT Pad;   <span style="color:#0f0">// 0x0
-</span><span style="color:#0f0"></span>    USHORT Limit; <span style="color:#0f0">// 0x2
-</span><span style="color:#0f0"></span>    ULONG  Base;  <span style="color:#0f0">// 0x4
-</span><span style="color:#0f0"></span>} KDESCRIPTOR, *PKDESCRIPTOR;
-</code></pre></div><p>Ergo, <code>var_8</code> can be inferred to be of type <a href="https://www.vergiliusproject.com/kernels/x86/Windows%207/SP1/_DESCRIPTOR">KDESCRIPTOR</a> which also corroborates our previous size calculation.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#0f0">// 0x8 bytes(sizeof)
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span><span style="color:#f00">typedef</span> <span style="color:#f00">struct</span> _DESCRIPTOR {
+</span></span><span style="display:flex;"><span>    USHORT Pad;   <span style="color:#0f0">// 0x0
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    USHORT Limit; <span style="color:#0f0">// 0x2
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    ULONG  Base;  <span style="color:#0f0">// 0x4
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>} KDESCRIPTOR, *PKDESCRIPTOR;
+</span></span></code></pre></div><p>Ergo, <code>var_8</code> can be inferred to be of type <a href="https://www.vergiliusproject.com/kernels/x86/Windows%207/SP1/_DESCRIPTOR">KDESCRIPTOR</a> which also corroborates our previous size calculation.</p>
 <p>So the complete stack layout can be illustrated like so:</p>
 <p><img src="/img/complete-stack-diagram-sample_J.PNG" alt="complete-stack-diagram-sample_J" title="complete-stack-diagram-sample_J"></p>
 <p>Finally, we can see a raw <em>decompilation</em> of the above routine using <code>Hex-Rays decompiler</code> on <a href="https://dogbolt.org/">https://dogbolt.org/</a>:</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">28
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">29
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">30
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">31
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">32
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">33
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">34
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">35
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">36
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">37
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">38
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">39
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">40
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">41
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">42
+<div class="highlight"><div style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">42
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ee82ee">char</span> String2[] = <span style="color:#87ceeb">&#34;explorer.exe&#34;</span>; <span style="color:#0f0">// idb
-</span><span style="color:#0f0"></span>
-BOOL <span style="color:#f00">__stdcall</span> <span style="color:#ff0">DllMain</span>(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
-{
-  HANDLE Toolhelp32Snapshot; <span style="color:#0f0">// edi
-</span><span style="color:#0f0"></span>  DWORD th32ParentProcessID; <span style="color:#0f0">// eax
-</span><span style="color:#0f0"></span>  DWORD th32ProcessID; <span style="color:#0f0">// ecx
-</span><span style="color:#0f0"></span>  PROCESSENTRY32 pe; <span style="color:#0f0">// [esp+4h] [ebp-130h] BYREF
-</span><span style="color:#0f0"></span>  _WORD v8[<span style="color:#f60">4</span>]; <span style="color:#0f0">// [esp+12Ch] [ebp-8h] BYREF
-</span><span style="color:#0f0"></span>
-  __sidt(v8);
-  <span style="color:#f00">if</span> ( *(_DWORD *)&amp;v8[<span style="color:#f60">1</span>] &gt; <span style="color:#f60">0x8003F400</span> &amp;&amp; *(_DWORD *)&amp;v8[<span style="color:#f60">1</span>] &lt; <span style="color:#f60">0x80047400</span> )
-    <span style="color:#f00">return</span> <span style="color:#f60">0</span>;
-  memset(&amp;pe, <span style="color:#f60">0</span>, <span style="color:#f00">sizeof</span>(pe));
-  Toolhelp32Snapshot = CreateToolhelp32Snapshot(<span style="color:#f60">2u</span>, <span style="color:#f60">0</span>);
-  <span style="color:#f00">if</span> ( Toolhelp32Snapshot == (HANDLE)-<span style="color:#f60">1</span> )
-    <span style="color:#f00">return</span> <span style="color:#f60">0</span>;
-  pe.dwSize = <span style="color:#f60">296</span>;
-  <span style="color:#f00">if</span> ( Process32First(Toolhelp32Snapshot, &amp;pe) )
-  {
-    <span style="color:#f00">if</span> ( !stricmp(pe.szExeFile, String2) )
-    {
-LABEL_10:
-      th32ParentProcessID = pe.th32ParentProcessID;
-      th32ProcessID = pe.th32ProcessID;
-      <span style="color:#f00">goto</span> LABEL_12;
-    }
-    <span style="color:#f00">while</span> ( Process32Next(Toolhelp32Snapshot, &amp;pe) )
-    {
-      <span style="color:#f00">if</span> ( !stricmp(pe.szExeFile, String2) )
-        <span style="color:#f00">goto</span> LABEL_10;
-    }
-  }
-  th32ParentProcessID = fdwReason;
-  th32ProcessID = fdwReason;
-LABEL_12:
-  <span style="color:#f00">if</span> ( th32ParentProcessID == th32ProcessID )
-    <span style="color:#f00">return</span> <span style="color:#f60">0</span>;
-  <span style="color:#f00">if</span> ( fdwReason == <span style="color:#f60">1</span> )
-    CreateThread(<span style="color:#f60">0</span>, <span style="color:#f60">0</span>, StartAddress, <span style="color:#f60">0</span>, <span style="color:#f60">0</span>, <span style="color:#f60">0</span>);
-  <span style="color:#f00">return</span> <span style="color:#f60">1</span>;
-}
-</code></pre></td></tr></table>
+<pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ee82ee">char</span> String2[] = <span style="color:#87ceeb">&#34;explorer.exe&#34;</span>; <span style="color:#0f0">// idb
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span>BOOL <span style="color:#f00">__stdcall</span> <span style="color:#ff0">DllMain</span>(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  HANDLE Toolhelp32Snapshot; <span style="color:#0f0">// edi
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  DWORD th32ParentProcessID; <span style="color:#0f0">// eax
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  DWORD th32ProcessID; <span style="color:#0f0">// ecx
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  PROCESSENTRY32 pe; <span style="color:#0f0">// [esp+4h] [ebp-130h] BYREF
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  _WORD v8[<span style="color:#f60">4</span>]; <span style="color:#0f0">// [esp+12Ch] [ebp-8h] BYREF
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span>  __sidt(v8);
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">if</span> ( *(_DWORD *)&amp;v8[<span style="color:#f60">1</span>] &gt; <span style="color:#f60">0x8003F400</span> &amp;&amp; *(_DWORD *)&amp;v8[<span style="color:#f60">1</span>] &lt; <span style="color:#f60">0x80047400</span> )
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">return</span> <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>  memset(&amp;pe, <span style="color:#f60">0</span>, <span style="color:#f00">sizeof</span>(pe));
+</span></span><span style="display:flex;"><span>  Toolhelp32Snapshot = CreateToolhelp32Snapshot(<span style="color:#f60">2u</span>, <span style="color:#f60">0</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">if</span> ( Toolhelp32Snapshot == (HANDLE)-<span style="color:#f60">1</span> )
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">return</span> <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>  pe.dwSize = <span style="color:#f60">296</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">if</span> ( Process32First(Toolhelp32Snapshot, &amp;pe) )
+</span></span><span style="display:flex;"><span>  {
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> ( !stricmp(pe.szExeFile, String2) )
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>LABEL_10:
+</span></span><span style="display:flex;"><span>      th32ParentProcessID = pe.th32ParentProcessID;
+</span></span><span style="display:flex;"><span>      th32ProcessID = pe.th32ProcessID;
+</span></span><span style="display:flex;"><span>      <span style="color:#f00">goto</span> LABEL_12;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">while</span> ( Process32Next(Toolhelp32Snapshot, &amp;pe) )
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>      <span style="color:#f00">if</span> ( !stricmp(pe.szExeFile, String2) )
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">goto</span> LABEL_10;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  th32ParentProcessID = fdwReason;
+</span></span><span style="display:flex;"><span>  th32ProcessID = fdwReason;
+</span></span><span style="display:flex;"><span>LABEL_12:
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">if</span> ( th32ParentProcessID == th32ProcessID )
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">return</span> <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">if</span> ( fdwReason == <span style="color:#f60">1</span> )
+</span></span><span style="display:flex;"><span>    CreateThread(<span style="color:#f60">0</span>, <span style="color:#f60">0</span>, StartAddress, <span style="color:#f60">0</span>, <span style="color:#f60">0</span>, <span style="color:#f60">0</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">return</span> <span style="color:#f60">1</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
 </div>
 </div>]]></content>
         </item>
@@ -385,7 +385,7 @@ LABEL_12:
             <guid>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-4-page-17/</guid>
             <description>Table of Contents  Question Answer  Question In all of the calling conventions explained, the return value is stored in a 32-bit register(EAX). What happens when the return value does not fit in a 32-bit register? Write a program to experiment and evaluate your answer. Does the mechanism change from compiler to compiler?
 Answer Let us consider the following C code:
-extern &amp;#34;C&amp;#34; __declspec(noinline) unsigned __int64 __stdcall fun( void ) { return 0x4141414142424242; } Compiling it with x86 msvc v19.</description>
+extern &amp;#34;C&amp;#34; __declspec(noinline) unsigned __int64 __stdcall fun(  void ) {  return 0x4141414142424242; } Compiling it with x86 msvc v19.</description>
             <content type="html"><![CDATA[<h2 id="table-of-contents">Table of Contents</h2>
 <ul>
 <li><a href="#question">Question</a></li>
@@ -395,13 +395,13 @@ extern &amp;#34;C&amp;#34; __declspec(noinline) unsigned __int64 __stdcall fun( 
 <p>In all of the calling conventions explained, the return value is stored in a 32-bit register(<code>EAX</code>). What happens when the return value does not fit in a 32-bit register? Write a program to experiment and evaluate your answer. Does the mechanism change from compiler to compiler?</p>
 <h2 id="answer">Answer</h2>
 <p>Let us consider the following <code>C</code> code:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) <span style="color:#ee82ee">unsigned</span> <span style="color:#f00">__int64</span> <span style="color:#f00">__stdcall</span> fun(
-  <span style="color:#ee82ee">void</span>
-) {
-  <span style="color:#f00">return</span> <span style="color:#f60">0x4141414142424242</span>;
-}
-</code></pre></div><p>Compiling it with <a href="https://godbolt.org/z/K4ab7soGP">x86 msvc v19.latest C/C++ compiler on godbolt.org</a> generates the following assembly code:</p>
-<pre><code class="language-x86asm" data-lang="x86asm">_fun@0  PROC
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) <span style="color:#ee82ee">unsigned</span> <span style="color:#f00">__int64</span> <span style="color:#f00">__stdcall</span> fun(
+</span></span><span style="display:flex;"><span>  <span style="color:#ee82ee">void</span>
+</span></span><span style="display:flex;"><span>) {
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">return</span> <span style="color:#f60">0x4141414142424242</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Compiling it with <a href="https://godbolt.org/z/K4ab7soGP">x86 msvc v19.latest C/C++ compiler on godbolt.org</a> generates the following assembly code:</p>
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">_fun@0  PROC
         push    ebp
         mov     ebp, esp
         mov     eax, 1111638594                     ; 42424242H
@@ -410,7 +410,7 @@ extern &amp;#34;C&amp;#34; __declspec(noinline) unsigned __int64 __stdcall fun( 
         ret     0
 _fun@0  ENDP
 </code></pre><p>And compiling it with <a href="https://godbolt.org/z/f968MKfG6">x86-64 icx 2022.0.0(Intel next-gen LLVM-based C/C++ compiler)</a> generates identical assembly code(minus creation of the base frame pointer controlled by compiler options):</p>
-<pre><code class="language-x86asm" data-lang="x86asm">fun:                                    # 
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">fun:                                    # 
         mov     eax, 1111638594
         mov     edx, 1094795585
         ret
@@ -444,7 +444,7 @@ push ebp mov ebp, esp movsx eax, word ptr [ebp + 8h] movsx ecx, word ptr [ebp + 
 were not properly restored before executing <code>RET</code>?</p>
 <h2 id="answer">Answer</h2>
 <p>Here is the <code>addme</code> function for reference:</p>
-<pre><code class="language-x86asm" data-lang="x86asm">push ebp
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">push ebp
 mov ebp, esp
 movsx eax, word ptr [ebp + 8h]
 movsx ecx, word ptr [ebp + 0Ch]
@@ -479,12 +479,12 @@ Answer There are several instructions in the x86 ISA to manipulate EIP register(
 <ol>
 <li><a href="https://namazso.github.io/x86/html/CALL.html">CALL</a></li>
 </ol>
-<pre><code class="language-x86asm" data-lang="x86asm">call 0xAABBCCDD
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">call 0xAABBCCDD
 </code></pre><p>The <code>call</code> instruction is used to call a procedure; it pushes the <code>retdaddr</code> on the stack before changing <code>EIP</code> to the call target effectively transferring control to it.</p>
 <ol start="2">
 <li><a href="https://namazso.github.io/x86/html/RET.html">RET</a></li>
 </ol>
-<pre><code class="language-x86asm" data-lang="x86asm">push 0xAABBCCDD
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">push 0xAABBCCDD
 ret
 </code></pre><p>The <code>ret</code> instruction is used to return from a procedure; it pops whatever&rsquo;s at the top of the stack into <code>EIP</code> register and transfers control to it.</p>
 <blockquote>
@@ -513,7 +513,7 @@ the value of <code>EIP</code>? Why can’t you just do <code>MOV EAX, EIP</code>
 <p><code>mov eax, eip</code> is seen as an invalid instruction(not encodable) by any assembler since <code>EIP</code> is not a <code>General Purpose Register(GPR)</code>; it is a special purpose register that is used as a pointer to the next instruction to execute(hence known as, <em>extended</em> instruction pointer).</p>
 <p>However, there are a couple of tricks to get <code>EIP</code> register value by reading it from the stack following the execution of the <code>call</code> instruction.</p>
 <p>Consider the following assembly subroutine(I&rsquo;m using <a href="https://docs.microsoft.com/en-us/cpp/assembler/masm/microsoft-macro-assembler-reference?view=msvc-170">MASM</a> as the assembler):</p>
-<pre><code class="language-x86asm" data-lang="x86asm">; Obtain instruction pointer(EIP) register value
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">; Obtain instruction pointer(EIP) register value
 OPTION LANGUAGE: SYSCALL
 @get_eip@0 PROC PUBLIC
   ; Function prologue - save the non-volatile registers onto the stack and perform explicit stack frame linkage
@@ -526,19 +526,19 @@ OPTION LANGUAGE: SYSCALL
   ; Function epilogue - perform cleanup and return EAX register value to the calling procedure
   ;leave
   ;mov esp, ebp                 ; ESP = EBP, restore the stack by releasing the local stack frame
-  pop ebp                       ; EBP = [ESP] and ESP = ESP + 0x4, restore the caller's base frame pointer
+  pop ebp                       ; EBP = [ESP] and ESP = ESP + 0x4, restore the caller&#39;s base frame pointer
   ret                           ; EIP = [ESP] and ESP = ESP + 0x4, return from procedure
 @get_eip@0 ENDP
 OPTION LANGUAGE: C
 </code></pre><p>And the corresponding function declaration in a header file to be able to call it from <code>C/C++</code> code:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) DWORD <span style="color:#f00">__fastcall</span> get_eip(
-  <span style="color:#ee82ee">void</span>
-);
-</code></pre></div><p>Note that the same function could also be written in <code>C</code> instead of assembly like so:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">DWORD <span style="color:#f00">__fastcall</span> <span style="color:#ff0">get_eip</span>(<span style="color:#ee82ee">void</span>) {
-  <span style="color:#f00">return</span> (DWORD)_ReturnAddress();
-}
-</code></pre></div><p>To get <code>EIP</code> register value, we call the above subroutine:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) DWORD <span style="color:#f00">__fastcall</span> get_eip(
+</span></span><span style="display:flex;"><span>  <span style="color:#ee82ee">void</span>
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>Note that the same function could also be written in <code>C</code> instead of assembly like so:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>DWORD <span style="color:#f00">__fastcall</span> <span style="color:#ff0">get_eip</span>(<span style="color:#ee82ee">void</span>) {
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">return</span> (DWORD)_ReturnAddress();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>To get <code>EIP</code> register value, we call the above subroutine:</p>
 <p><img src="/img/before-call.PNG" alt="before-call" title="before-call"></p>
 <p>After the <code>call</code> instruction is executed, <code>retaddr</code> is pushed onto the stack and <code>EIP</code> value is changed to the <code>call</code> target.</p>
 <p><img src="/img/after-call.PNG" alt="after-call" title="after-call"></p>
@@ -567,7 +567,7 @@ OPTION LANGUAGE: C
 </ul>
 <h2 id="question">Question</h2>
 <p>This function uses a combination <code>SCAS</code> and <code>STOS</code> to do its work. First, explain what is the type of the <code>[EBP+8]</code> and <code>[EBP+C]</code> in line 1 and 8, respectively. Next, explain what this snippet does.</p>
-<pre><code class="language-x86asm" data-lang="x86asm">01: mov edi, [ebp + 8]
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">01: mov edi, [ebp + 8]
 02: mov edx, edi
 03: xor eax, eax
 04: or ecx, 0FFFFFFFFh
@@ -593,13 +593,13 @@ OPTION LANGUAGE: C
 <p>Line 10 uses the <code>stosb</code> instruction to store the byte(given by <code>AL</code>) into the string(pointed to by <code>EDI</code>) one byte at a time. <code>rep</code> prefix is used to indicate to keep setting until <code>ECX</code> decrements to 0(i.e. the entire length of the string).</p>
 <p>Line 11 sets <code>EAX</code> with <code>EDX</code> now pointing to the overwritten string. <code>EAX</code> register holds the return value when returning from a procedure.</p>
 <p>Based on all of the above, we can construct a decompilation of the assembly snippet as follows:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) PCHAR <span style="color:#f00">__cdecl</span> asm_func(
-  _In_ PCHAR pchBuffer,
-  _In_ CHAR  chValue
-) {
-  <span style="color:#f00">return</span> (PCHAR)memset(pchBuffer, chValue, strlen(pchBuffer));
-}
-</code></pre></div>]]></content>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#f00">extern</span> <span style="color:#87ceeb">&#34;C&#34;</span> <span style="color:#f00">__declspec</span>(noinline) PCHAR <span style="color:#f00">__cdecl</span> asm_func(
+</span></span><span style="display:flex;"><span>  _In_ PCHAR pchBuffer,
+</span></span><span style="display:flex;"><span>  _In_ CHAR  chValue
+</span></span><span style="display:flex;"><span>) {
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">return</span> (PCHAR)memset(pchBuffer, chValue, strlen(pchBuffer));
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div>]]></content>
         </item>
         
     </channel>
