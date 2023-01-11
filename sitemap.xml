@@ -2,6 +2,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://lampreylabs.com/posts/2023/01/hacksys-extreme-vulnerable-driverhevd-windows-driver-exploitation-stack-buffer-overflow/</loc>
+    <lastmod>2023-01-11T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://lampreylabs.com/posts/2022/08/practical-reverse-engineering-exercise-2-page-35/</loc>
     <lastmod>2022-08-28T00:00:00+00:00</lastmod>
   </url><url>
@@ -23,16 +26,19 @@
     <loc>https://lampreylabs.com/posts/2022/07/practical-reverse-engineering-exercise-1-page-11/</loc>
     <lastmod>2022-07-13T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://lampreylabs.com/series/hacksys-extreme-vulnerable-driverhevd-windows-driver-exploitation-series/</loc>
+    <lastmod>2023-01-11T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://lampreylabs.com/</loc>
-    <lastmod>2022-08-28T00:00:00+00:00</lastmod>
+    <lastmod>2023-01-11T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://lampreylabs.com/posts/</loc>
-    <lastmod>2022-08-28T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://lampreylabs.com/series/practical-reverse-engineering-exercise-solutions/</loc>
-    <lastmod>2022-08-28T00:00:00+00:00</lastmod>
+    <lastmod>2023-01-11T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://lampreylabs.com/series/</loc>
+    <lastmod>2023-01-11T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://lampreylabs.com/series/practical-reverse-engineering-exercise-solutions/</loc>
     <lastmod>2022-08-28T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://lampreylabs.com/about/</loc>

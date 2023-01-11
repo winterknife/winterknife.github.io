@@ -7,7 +7,16 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>This work is licensed under the GNU General Public License v3.0</copyright>
-    <lastBuildDate>Sun, 28 Aug 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lampreylabs.com/series/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 11 Jan 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://lampreylabs.com/series/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Hacksys Extreme Vulnerable Driver(HEVD) Windows Driver Exploitation Series</title>
+      <link>https://lampreylabs.com/series/hacksys-extreme-vulnerable-driverhevd-windows-driver-exploitation-series/</link>
+      <pubDate>Wed, 11 Jan 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://lampreylabs.com/series/hacksys-extreme-vulnerable-driverhevd-windows-driver-exploitation-series/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>Practical Reverse Engineering Exercise Solutions</title>
       <link>https://lampreylabs.com/series/practical-reverse-engineering-exercise-solutions/</link>

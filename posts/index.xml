@@ -6,8 +6,253 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>This work is licensed under the GNU General Public License v3.0</copyright>
-        <lastBuildDate>Sun, 28 Aug 2022 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Wed, 11 Jan 2023 00:00:00 +0000</lastBuildDate>
         <atom:link href="https://lampreylabs.com/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Hacksys Extreme Vulnerable Driver(HEVD) Windows Driver Exploitation - Stack Buffer Overflow</title>
+            <link>https://lampreylabs.com/posts/2023/01/hacksys-extreme-vulnerable-driverhevd-windows-driver-exploitation-stack-buffer-overflow/</link>
+            <pubDate>Wed, 11 Jan 2023 00:00:00 +0000</pubDate>
+            
+            <guid>https://lampreylabs.com/posts/2023/01/hacksys-extreme-vulnerable-driverhevd-windows-driver-exploitation-stack-buffer-overflow/</guid>
+            <description>Table of Contents  Brief Vulnerability Exploitation and Stabilization  Case I: Intel OS Guard/SMEP not present, KVA Shadow/KPTI disabled   Patch Analysis Honourable Mention  Brief The vulnerability class in question that we are going to hunt for and exploit is a Stack Buffer Overflow in HEVD.sys Windows driver compiled without stack cookie/canary(/GS Buffer Security Check) or StackGuard mitigation. We are also going to look at productization and stabilization of the exploit later on.</description>
+            <content type="html"><![CDATA[<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#brief">Brief</a></li>
+<li><a href="#vulnerability">Vulnerability</a></li>
+<li><a href="#exploitation-and-stabilization">Exploitation and Stabilization</a>
+<ul>
+<li><a href="#case-i">Case I: <code>Intel OS Guard</code>/<code>SMEP</code> not present, <code>KVA Shadow</code>/<code>KPTI</code> disabled</a></li>
+</ul>
+</li>
+<li><a href="#patch-analysis">Patch Analysis</a></li>
+<li><a href="#honourable-mention">Honourable Mention</a></li>
+</ul>
+<h2 id="brief">Brief</h2>
+<p>The vulnerability class in question that we are going to hunt for and exploit is a <code>Stack Buffer Overflow</code> in <code>HEVD.sys</code> <code>Windows</code> driver compiled without stack cookie/canary(<code>/GS</code> Buffer Security Check) or <code>StackGuard</code> mitigation. We are also going to look at productization and stabilization of the exploit later on.</p>
+<blockquote>
+<p>We are only going to consider <code>Intel 64</code>(64-bit version of the <code>x86</code> <code>ISA</code>) targets in this blog post unless explicitly stated otherwise.</p>
+</blockquote>
+<h2 id="vulnerability">Vulnerability</h2>
+<p>First off, we should grab the latest version of the <a href="https://github.com/hacksysteam/HackSysExtremeVulnerableDriver">HEVD</a> binary that we are going to exploit. I am going to use <code>HEVD v3.00</code>.</p>
+<p>Our next step would be to of course load the vulnerable version of the binary in <code>IDA Pro</code> for static analysis. You could also use <code>IDA Free/Demo/Home</code> or any other disassembler of your choice. <code>Hex-Rays</code> decompiler is not strictly necessary although it would certainly be helpful.</p>
+<p>We will be utilising the provided <code>PDB</code> symbol file which will greatly aid us in <code>RE</code> and later on we will also take a look at the patch to discuss how the vulnerability was fixed.</p>
+<blockquote>
+<p>An useful <code>IDA Pro</code> plugin for initial automated analysis of <code>Windows</code> drivers is <a href="https://github.com/VoidSec/DriverBuddyReloaded">DriverBuddyReloaded</a> by <a href="https://twitter.com/Void_Sec">VoidSec</a>. It may provide us with a useful starting point and save some time in the process.</p>
+</blockquote>
+<p>After opening the binary, we land in <code>GsDriverEntry()</code> routine which doesn&rsquo;t look anything like the <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nc-wdm-driver_initialize">DriverEntry()</a> routine that we are familiar with. It is actually inserted by the compiler when the code is compiled with the <a href="https://learn.microsoft.com/en-us/cpp/build/reference/gs-buffer-security-check?view=msvc-170">/GS</a> compiler flag and performs some initialization to support the detection of buffer overruns.</p>
+<p><img src="/img/hevd-gs-entry-point.PNG" alt="hevd-gs-entry-point" title="hevd-gs-entry-point"></p>
+<p>We can simply follow the call to a function appropriately named here as <code>DriverEntry_0()</code>. Now, this looks more like it! We can already see the device name string and the <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/introduction-to-ms-dos-device-names">MS-DOS</a> device name string that are initialized to <a href="https://learn.microsoft.com/en-us/windows/win32/api/ntdef/ns-ntdef-_unicode_string">nt!_UNICODE_STRING</a> structures using <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlinitunicodestring">nt!RtlInitUnicodeString()</a> routine.</p>
+<p><img src="/img/hevd-real-entry-point.PNG" alt="hevd-real-entry-point" title="hevd-real-entry-point"></p>
+<p>We can use <code>Hex-Rays</code> decompiler to decompile this function and note three things that are of concern to us:</p>
+<ol>
+<li>Creation of the named device object for the driver using <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-iocreatedevice">nt!IoCreateDevice()</a> routine. Notably, it doesn&rsquo;t use <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdmsec/nf-wdmsec-wdmlibiocreatedevicesecure">nt!IoCreateDeviceSecure()</a> routine that lets us implement access control. This potentially implies that any process running on the system even one with a <strong>Low Integrity Level</strong> token can open a handle to this device object.</li>
+<li>Creation of the symbolic link object to the device by using <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-iocreatesymboliclink">nt!IoCreateSymbolicLink()</a> routine and supplying the <code>MS-DOS</code> device name for the device object. This is necessary to work with the driver from a user-mode application.</li>
+<li>Setting the pointer to the <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/dispatchdevicecontrol-and-dispatchinternaldevicecontrol-routines">DispatchDeviceControl</a> dispatch routine in the <code>MajorFunction[]</code> array of the driver object to handle <code>IRP_MJ_DEVICE_CONTROL</code> requests. For more information, refer to the <code>MSDN</code> documentation on the <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ns-wdm-_driver_object">nt!_DRIVER_OBJECT structure</a> and <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ifs/irp-mj-device-control">IRP_MJ_DEVICE_CONTROL</a>.</li>
+</ol>
+<p><img src="/img/hevd-real-entry-point-decompiled.PNG" alt="hevd-real-entry-point-decompiled" title="hevd-real-entry-point-decompiled"></p>
+<p>Now that we have found the driver dispatch routine to handle <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ns-wdm-_irp">IRPs</a> with <code>I/O</code> function code of <code>IRP_MJ_DEVICE_CONTROL</code>, we can start looking for the various functionalities implemented by the driver that we can trigger from a user-mode client application by sending the appropriate <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/defining-i-o-control-codes">IOCTL</a> code and <code>I/O</code> parameters using <a href="https://learn.microsoft.com/en-us/windows/win32/api/ioapiset/nf-ioapiset-deviceiocontrol">kernel32!DeviceIoControl()</a> routine.</p>
+<p>And scrolling down a bit we found a call to <code>IOCTL</code> handler of stack buffer overflow thanks to the helpful debug prints baked into the code(yes, this happens sometimes in production builds too!)</p>
+<p><img src="/img/hevd-dispatch-device-control-stack-buffer-overflow.PNG" alt="hevd-dispatch-device-control-stack-buffer-overflow" title="hevd-dispatch-device-control-stack-buffer-overflow"></p>
+<p>But what is the <code>IOCTL</code> code through which we can take this code path?</p>
+<p>Well, we just scroll up a bit in the control flow graph and spot some code that checks if <code>ECX == 0x222003</code> and jumps to the location we highlighted above if the condition is true. Looks like we have found the <code>IOCTL</code> code to trigger a stack buffer overflow!</p>
+<p><img src="/img/hevd-stack-buffer-overflow-ioctl.PNG" alt="hevd-stack-buffer-overflow-ioctl" title="hevd-stack-buffer-overflow-ioctl"></p>
+<p>We can now decode the <code>IOCTL</code> code using <a href="https://www.osronline.com/article.cfm%5Earticle=229.htm">OSR Online IOCTL Decoder</a>.</p>
+<p><img src="/img/hevd-stack-buffer-overflow-ioctl-decoded.PNG" alt="hevd-stack-buffer-overflow-ioctl-decoded" title="hevd-stack-buffer-overflow-ioctl-decoded"></p>
+<p>The most notable fact about this is that it uses <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/buffer-descriptions-for-i-o-control-codes#method_neither">METHOD_NEITHER</a> transfer type which means the <code>I/O</code> manager does not validate the buffers which reside in <code>UVAS</code> and are not copied to <code>KVAS</code>. It is up to the driver to implement proper validation to determine if the buffers are safe to access from the driver.</p>
+<p>Let&rsquo;s take a gander at the disassembly and decompilation of the <code>IOCTL</code> handler of stack buffer overflow using <code>IDA Pro</code> and <code>Hex-Rays</code> decompiler:</p>
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">PAGE:0000000140086594     ; =============== S U B R O U T I N E =======================================
+PAGE:0000000140086594
+PAGE:0000000140086594
+PAGE:0000000140086594     ; int __fastcall BufferOverflowStackIoctlHandler(_IRP *Irp, _IO_STACK_LOCATION *IrpSp)
+PAGE:0000000140086594     BufferOverflowStackIoctlHandler proc near
+PAGE:0000000140086594                                             ; CODE XREF: IrpDeviceIoCtlHandler+1D6↑p
+PAGE:0000000140086594                                             ; DATA XREF: .pdata:0000000140084144↑o
+PAGE:0000000140086594     Irp = rcx
+PAGE:0000000140086594     IrpSp = rdx
+PAGE:0000000140086594 000                 sub     rsp, 28h
+PAGE:0000000140086598 028                 mov     Irp, [IrpSp+20h] ; UserBuffer
+PAGE:000000014008659C 028                 mov     eax, 0C0000001h
+PAGE:00000001400865A1 028                 mov     edx, [IrpSp+10h] ; Size
+PAGE:00000001400865A4 028                 test    Irp, Irp
+PAGE:00000001400865A7 028                 jz      short loc_1400865AE
+PAGE:00000001400865A9 028                 call    TriggerBufferOverflowStack
+PAGE:00000001400865AE
+PAGE:00000001400865AE     loc_1400865AE:                          ; CODE XREF: BufferOverflowStackIoctlHandler+13↑j
+PAGE:00000001400865AE 028                 add     rsp, 28h
+PAGE:00000001400865B2 000                 retn
+PAGE:00000001400865B2     BufferOverflowStackIoctlHandler endp
+PAGE:00000001400865B2
+PAGE:00000001400865B2     ; ---------------------------------------------------------------------------
+</code></pre><p><img src="/img/hevd-stack-buffer-overflow-ioctl-handler-decompiled.PNG" alt="hevd-stack-buffer-overflow-ioctl-handler-decompiled" title="hevd-stack-buffer-overflow-ioctl-handler-decompiled"></p>
+<p>The only thing this function does is extract the pointer to user&rsquo;s input buffer from the current <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/i-o-stack-locations">I/O stack location</a> and its length from the <code>IRP</code> which were copied as-is by the <code>I/O</code> manager from the user-mode client application to the <code>nt!_IRP</code> and its accompanying <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ns-wdm-_io_stack_location">nt!_IO_STACK_LOCATION</a> structure(s) without any form of checking and call <code>HEVD!TriggerBufferOverflowStack()</code> routine with the pointer to user input buffer and its size that were just extracted as arguments.</p>
+<p>It looks as though the hunt is finally over as we descend upon the function which is helpfully named <code>TriggerBufferOverflowStack()</code>:</p>
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">PAGE:00000001400865B4     ; =============== S U B R O U T I N E =======================================
+PAGE:00000001400865B4
+PAGE:00000001400865B4
+PAGE:00000001400865B4     ; __int64 __fastcall TriggerBufferOverflowStack(void *UserBuffer, size_t Size)
+PAGE:00000001400865B4     TriggerBufferOverflowStack proc near    ; CODE XREF: BufferOverflowStackIoctlHandler+15↑p
+PAGE:00000001400865B4                                             ; DATA XREF: .pdata:0000000140084150↑o
+PAGE:00000001400865B4
+PAGE:00000001400865B4     KernelBuffer    = dword ptr -818h
+PAGE:00000001400865B4     var_18          = byte ptr -18h
+PAGE:00000001400865B4     arg_0           = qword ptr  8
+PAGE:00000001400865B4     arg_8           = qword ptr  10h
+PAGE:00000001400865B4     arg_10          = qword ptr  18h
+PAGE:00000001400865B4
+PAGE:00000001400865B4     UserBuffer = rcx
+PAGE:00000001400865B4     Size = rdx
+PAGE:00000001400865B4     ; __unwind { // __C_specific_handler
+PAGE:00000001400865B4 000                 mov     [rsp+arg_0], rbx
+PAGE:00000001400865B9 000                 mov     [rsp+arg_8], rsi
+PAGE:00000001400865BE 000                 mov     [rsp+arg_10], rdi
+PAGE:00000001400865C3 000                 push    r12
+PAGE:00000001400865C5 008                 push    r14
+PAGE:00000001400865C7 010                 push    r15
+PAGE:00000001400865C9 018                 sub     rsp, 820h
+PAGE:00000001400865D0 838                 mov     rsi, Size
+PAGE:00000001400865D3 838                 mov     rdi, UserBuffer
+PAGE:00000001400865D6 838                 xor     ebx, ebx
+PAGE:00000001400865D8 838                 mov     r12d, 800h
+PAGE:00000001400865DE 838                 mov     r8d, r12d       ; Size
+PAGE:00000001400865E1 838                 xor     edx, edx        ; Val
+PAGE:00000001400865E3 838                 lea     UserBuffer, [rsp+838h+KernelBuffer] ; Dst
+PAGE:00000001400865E8 838                 call    memset
+PAGE:00000001400865ED 838                 nop
+PAGE:00000001400865EE
+PAGE:00000001400865EE     loc_1400865EE:                          ; DATA XREF: .rdata:00000001400025B0↑o
+PAGE:00000001400865EE     ;   __try { // __except at $LN6_0       ; Alignment
+PAGE:00000001400865EE 838                 lea     r8d, [rbx+1]
+PAGE:00000001400865F2 838                 mov     edx, r12d       ; Length
+PAGE:00000001400865F5 838                 mov     UserBuffer, rdi ; Address
+PAGE:00000001400865F8 838                 call    cs:__imp_ProbeForRead
+PAGE:00000001400865FE 838                 mov     r9, rdi
+PAGE:0000000140086601 838                 lea     r8, aUserbuffer0xP ; &#34;[+] UserBuffer: 0x%p\n&#34;
+PAGE:0000000140086608 838                 lea     r15d, [rbx+3]
+PAGE:000000014008660C 838                 mov     edx, r15d       ; Level
+PAGE:000000014008660F 838                 lea     r14d, [rbx+4Dh]
+PAGE:0000000140086613 838                 mov     ecx, r14d       ; ComponentId
+PAGE:0000000140086616 838                 call    cs:__imp_DbgPrintEx
+PAGE:000000014008661C 838                 mov     r9, rsi
+PAGE:000000014008661F 838                 lea     r8, aUserbufferSize ; &#34;[+] UserBuffer Size: 0x%X\n&#34;
+PAGE:0000000140086626 838                 mov     edx, r15d       ; Level
+PAGE:0000000140086629 838                 mov     ecx, r14d       ; ComponentId
+PAGE:000000014008662C 838                 call    cs:__imp_DbgPrintEx
+PAGE:0000000140086632 838                 lea     r9, [rsp+838h+KernelBuffer]
+PAGE:0000000140086637 838                 lea     r8, aKernelbuffer0x ; &#34;[+] KernelBuffer: 0x%p\n&#34;
+PAGE:000000014008663E 838                 mov     edx, r15d       ; Level
+PAGE:0000000140086641 838                 mov     ecx, r14d       ; ComponentId
+PAGE:0000000140086644 838                 call    cs:__imp_DbgPrintEx
+PAGE:000000014008664A 838                 mov     r9d, r12d
+PAGE:000000014008664D 838                 lea     r8, aKernelbufferSi ; &#34;[+] KernelBuffer Size: 0x%X\n&#34;
+PAGE:0000000140086654 838                 mov     edx, r15d       ; Level
+PAGE:0000000140086657 838                 mov     ecx, r14d       ; ComponentId
+PAGE:000000014008665A 838                 call    cs:__imp_DbgPrintEx
+PAGE:0000000140086660 838                 lea     r8, aTriggeringBuff_2 ; &#34;[+] Triggering Buffer Overflow in Stack&#34;...
+PAGE:0000000140086667 838                 mov     edx, r15d       ; Level
+PAGE:000000014008666A 838                 mov     ecx, r14d       ; ComponentId
+PAGE:000000014008666D 838                 call    cs:__imp_DbgPrintEx
+PAGE:0000000140086673 838                 mov     r8, rsi         ; MaxCount
+PAGE:0000000140086676 838                 mov     Size, rdi       ; Src
+PAGE:0000000140086679 838                 lea     UserBuffer, [rsp+838h+KernelBuffer] ; Dst
+PAGE:000000014008667E 838                 call    memmove
+PAGE:0000000140086683 838                 jmp     short loc_1400866A0
+PAGE:0000000140086683     ;   } // starts at 1400865EE
+PAGE:0000000140086685     ; ---------------------------------------------------------------------------
+PAGE:0000000140086685
+PAGE:0000000140086685     $LN6_0:                                 ; DATA XREF: .rdata:00000001400025B0↑o
+PAGE:0000000140086685     ;   __except(1) // owned by 1400865EE
+PAGE:0000000140086685 838                 mov     ebx, eax
+PAGE:0000000140086687 838                 mov     r9d, eax
+PAGE:000000014008668A 838                 lea     r8, aExceptionCode0 ; &#34;[-] Exception Code: 0x%X\n&#34;
+PAGE:0000000140086691 838                 mov     edx, 3          ; Level
+PAGE:0000000140086696 838                 lea     ecx, [Size+4Ah] ; ComponentId
+PAGE:0000000140086699 838                 call    cs:__imp_DbgPrintEx
+PAGE:000000014008669F 838                 nop
+PAGE:00000001400866A0
+PAGE:00000001400866A0     loc_1400866A0:                          ; CODE XREF: TriggerBufferOverflowStack+CF↑j
+PAGE:00000001400866A0 838                 mov     eax, ebx
+PAGE:00000001400866A2 838                 lea     r11, [rsp+838h+var_18]
+PAGE:00000001400866AA 838                 mov     rbx, [r11+20h]
+PAGE:00000001400866AE 838                 mov     rsi, [r11+28h]
+PAGE:00000001400866B2 838                 mov     rdi, [r11+30h]
+PAGE:00000001400866B6 838                 mov     rsp, r11
+PAGE:00000001400866B9 018                 pop     r15
+PAGE:00000001400866BB 010                 pop     r14
+PAGE:00000001400866BD 008                 pop     r12
+PAGE:00000001400866BF 000                 retn
+PAGE:00000001400866BF     ; } // starts at 1400865B4
+PAGE:00000001400866BF     TriggerBufferOverflowStack endp
+</code></pre><p><img src="/img/hevd-stack-buffer-overflow-decompiled.PNG" alt="hevd-stack-buffer-overflow-decompiled" title="hevd-stack-buffer-overflow-decompiled"></p>
+<p>The issue here(highlighted in red for your reading pleasure) is apparent. On one hand, we have a local variable called <code>Dst</code> and it is an array of type <code>CHAR</code> consisting of <code>0n2048/0x800</code> elements occupying <code>0n2048 * sizeof(CHAR) = 0n2048/0x800</code> bytes on the stack and on the other hand we have an unsafe routine such as <a href="https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/memmove-wmemmove?view=msvc-170">memmove()</a> taking attacker-controlled input data and size as arguments and copying it to the buffer on the stack without any form of size validation thus making it possible to overflow its bounds and corrupt adjacent data on the stack.</p>
+<p>This bug appears to be exploitable in practice too because the input data and the input size both appear to be completely attacker-controlled without any constraints.</p>
+<h2 id="exploitation-and-stabilization">Exploitation and Stabilization</h2>
+<p>Our objective is exploiting this vulnerability to achieve arbitrary code execution in kernel-mode and we previously said that we can corrupt data on the stack using the vulnerability but how does corrupting random stack data help us in any way except maybe causing a glorious bugcheck on the device?</p>
+<p>Well, as you might know, the <a href="https://namazso.github.io/x86/html/CALL.html">call</a> instruction <em>pushes</em> the <em>return address</em>(address of the subsequent instruction following the <code>call</code>) on the <em>stack</em> before changing the <em>(really)extended instruction pointer</em>(<code>EIP</code>/<code>RIP</code>) value to the <code>call</code> target and the <a href="https://namazso.github.io/x86/html/RET.html">ret</a> instruction <em>pops</em> the value at the <em>top of the stack</em> into <code>EIP</code>/<code>RIP</code>. They are both control flow instructions as they can be used to <em>control</em> the instruction pointer(a pointer to the next instruction to execute).</p>
+<p>So what if we could overwrite a <code>retaddr</code> on the stack with the address of our payload buffer that we control? And when the function returns we are going to have our payload executed instead!</p>
+<p>Now that we have defined our exploitation strategy, let&rsquo;s discuss some potential problems and how we resolve them:</p>
+<ol>
+<li>Legacy and modern exploit mitigations such as <code>KASLR</code>, <code>DEP</code>, <code>GS Cookie</code>, <code>KPP/PatchGuard</code>, <code>SMEP</code>, <code>SMAP</code>, <code>KPTI</code>, <code>kCFG</code>, <code>HyperGuard</code>, <code>HVCI</code>, <code>KCET</code> etc.</li>
+</ol>
+<ul>
+<li>Some of them are not applicable here, some can be entirely avoided or bypassed and others will completely thwart us. We will discuss them in detail on a case-by-case basis.</li>
+</ul>
+<ol start="2">
+<li>Where do we put our payload?</li>
+</ol>
+<ul>
+<li>User Virtual Address Space(<code>UVAS</code>).</li>
+</ul>
+<ol start="3">
+<li>What happens if our payload <code>UVA</code> gets paged out before we are done?</li>
+</ol>
+<ul>
+<li>Lock the payload pages into physical memory thus ensuring that they cannot be written to the pagefile.</li>
+</ul>
+<ol start="4">
+<li>How do we know how much stack data to corrupt to cause an overwrite of the <code>retaddr</code> and not any other arbitrary data on the stack which may lead to system instability?</li>
+</ol>
+<ul>
+<li>We must first draw the complete stack layout with the help of the disassembly shown above in order to understand this.
+<img src="/img/hevd-stack-buffer-overflow-stack-layout.PNG" alt="hevd-stack-buffer-overflow-stack-layout" title="hevd-stack-buffer-overflow-stack-layout">
+Note that the offsets here are relative to the stack base containing the <code>retaddr</code>. From this diagram, we can see that after we overflow the bounds of the buffer <code>Dst</code> stored on stack into three non-volatile register contents also saved on stack we can finally overwrite the <code>retaddr</code>(ergo, <code>retaddr</code> offset = <code>0x800 + 0x8 * 0n3</code> = <strong><code>0x818</code></strong>). I&rsquo;ve seen some writeups use cyclic pattern generators for this purpose so feel free to confirm the above using <a href="https://zerosum0x0.blogspot.com/2016/11/overflow-exploit-pattern-generator.html">Overflow Exploit Pattern Generator - Online Tool
+</a> by <a href="">@zerosum0x0</a>.
+One thing to mention here is that we irreparably trash three saved non-volatile register contents on the stack(<code>R12</code>, <code>R14</code>, and <code>R15</code>) to get to the <code>retaddr</code> which is not ideal for stability but also unavoidable in our case.</li>
+</ul>
+<ol start="5">
+<li>How do we pick up the original control-flow and return back to user-mode after our payload finishes executing now that we have utterly messed up the stack?</li>
+</ol>
+<ul>
+<li>There are quite a few approaches to deal with kernel payload recovery, however, in order to understand the most appropriate approach for our case(and also perhaps the easiest), we need to consult the disassembly of the caller of <code>HEVD!TriggerBufferOverflowStack()</code> and see the location where our callee would have normally returned had the control-flow not been hijacked to execute our payload.
+<img src="/img/hevd-stack-buffer-overflow-recovery-stub.PNG" alt="hevd-stack-buffer-overflow-recovery-stub" title="hevd-stack-buffer-overflow-recovery-stub">
+Once we identify that, we can append the code stub(highlighted in red) to our payload so that we can execute it ourselves and return out of kernel-mode without crashing the system.</li>
+</ul>
+<h3 id="case-i">Case I</h3>
+<ul>
+<li><code>Intel OS Guard</code>/<code>SMEP</code> not present, <code>KVA Shadow</code>/<code>KPTI</code> disabled</li>
+<li>Easiest case to deal with so we will start with this one(baby steps)</li>
+<li>Target
+<ul>
+<li><code>Windows 7</code> <code>OS</code> or <code>OS</code> &gt; <code>Windows 7</code> but running on older <code>Intel</code> hardware(μarch &lt; <code>Ivy Bridge</code>)</li>
+<li><code>Intel</code> processor that <strong><em>is not</em></strong> vulnerable to <code>Rogue Data Cache Load</code>/<code>Meltdown</code>/<code>Variant 3</code>/<code>CVE-2017-5754</code> or without the <code>Meltdown</code> patch(<code>KPTI</code> disabled)</li>
+</ul>
+</li>
+<li>Proof of Concept
+<ul>
+<li><a href="https://github.com/winterknife/HEVDExploitation/blob/master/StackBufferOverflow/main.cpp">StackBufferOverflow</a></li>
+</ul>
+</li>
+</ul>
+<p>There is nothing further to explain here as there are no kernel security mitigations to defeat. Here is a screenshot demonstrating successful exploitation of this vulnerability on a fully updated <code>Windows 7</code> system with a modified <a href="https://github.com/winterknife/PINKPANTHER">PINKPANTHER</a> payload to achieve <code>Local Privilege Escalation(LPE)</code>:</p>
+<p><img src="/img/hevd-stack-buffer-overflow-lpe-poc.PNG" alt="hevd-stack-buffer-overflow-lpe-poc" title="hevd-stack-buffer-overflow-lpe-poc"></p>
+<h2 id="patch-analysis">Patch Analysis</h2>
+<p>So what was the fix? We can load the &ldquo;secure&rdquo; version of the binary into <code>IDA Pro</code> to find out.</p>
+<p><img src="/img/hevd-stack-buffer-overflow-patch-analysis.PNG" alt="hevd-stack-buffer-overflow-patch-analysis" title="hevd-stack-buffer-overflow-patch-analysis"></p>
+<p>Quite simple really as it turns out, by enforcing stringent bounds. As you might notice, the size parameter to <code>memmove()</code> is no longer attacker-controlled and it&rsquo;s fixed to <code>sizeof(KernelBuffer)</code> bytes which means that we will no longer be able to overrun the contents of this buffer on the stack beyond its bounds.</p>
+<h2 id="honourable-mention">Honourable Mention</h2>
+<p>Throughout this blog post I have assumed that the readers are already familiar with setting up a <code>Windows</code> test <code>VM</code> with full kernel debugging support and have done so but if that&rsquo;s not the case, I&rsquo;d implore you to give this a read: <a href="https://www.codemachine.com/articles/system_setup_for_kernel_development.html">CodeMachine System setup for kernel development and debugging guide</a></p>
+]]></content>
+        </item>
         
         <item>
             <title>Practical Reverse Engineering - Exercise 2, Page 35</title>
