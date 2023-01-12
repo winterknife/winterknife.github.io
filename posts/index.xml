@@ -36,7 +36,7 @@
 <h2 id="vulnerability">Vulnerability</h2>
 <p>First off, we should grab the latest version of the <a href="https://github.com/hacksysteam/HackSysExtremeVulnerableDriver">HEVD</a> binary that we are going to exploit. I am going to use <code>HEVD v3.00</code>.</p>
 <p>Our next step would be to of course load the vulnerable version of the binary in <code>IDA Pro</code> for static analysis. You could also use <code>IDA Free/Demo/Home</code> or any other disassembler of your choice. <code>Hex-Rays</code> decompiler is not strictly necessary although it would certainly be helpful.</p>
-<p>We will be utilising the provided <code>PDB</code> symbol file which will greatly aid us in <code>RE</code> and later on we will also take a look at the patch to discuss how the vulnerability was fixed.</p>
+<p>We will be utilizing the provided <code>PDB</code> symbol file which will greatly aid us in <code>RE</code> and later on we will also take a look at the patch to discuss how the vulnerability was fixed.</p>
 <blockquote>
 <p>An useful <code>IDA Pro</code> plugin for initial automated analysis of <code>Windows</code> drivers is <a href="https://github.com/VoidSec/DriverBuddyReloaded">DriverBuddyReloaded</a> by <a href="https://twitter.com/Void_Sec">VoidSec</a>. It may provide us with a useful starting point and save some time in the process.</p>
 </blockquote>
@@ -59,7 +59,7 @@
 <p><img src="/img/hevd-stack-buffer-overflow-ioctl.PNG" alt="hevd-stack-buffer-overflow-ioctl" title="hevd-stack-buffer-overflow-ioctl"></p>
 <p>We can now decode the <code>IOCTL</code> code using <a href="https://www.osronline.com/article.cfm%5Earticle=229.htm">OSR Online IOCTL Decoder</a>.</p>
 <p><img src="/img/hevd-stack-buffer-overflow-ioctl-decoded.PNG" alt="hevd-stack-buffer-overflow-ioctl-decoded" title="hevd-stack-buffer-overflow-ioctl-decoded"></p>
-<p>The most notable fact about this is that it uses <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/buffer-descriptions-for-i-o-control-codes#method_neither">METHOD_NEITHER</a> transfer type which means the <code>I/O</code> manager does not validate the buffers which reside in <code>UVAS</code> and are not copied to <code>KVAS</code>. It is up to the driver to implement proper validation to determine if the buffers are safe to access from the driver.</p>
+<p>The most notable fact about this is that it uses <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/buffer-descriptions-for-i-o-control-codes#method_neither">METHOD_NEITHER</a> transfer type which means the <code>I/O</code> manager does not validate the buffers which reside in <code>UVAS</code> and are not copied to <code>KVAS</code>. It is up to the driver to implement proper sanity checks to determine if the buffers are safe to access from the driver.</p>
 <p>Let&rsquo;s take a gander at the disassembly and decompilation of the <code>IOCTL</code> handler of stack buffer overflow using <code>IDA Pro</code> and <code>Hex-Rays</code> decompiler:</p>
 <pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">PAGE:0000000140086594     ; =============== S U B R O U T I N E =======================================
 PAGE:0000000140086594
@@ -85,8 +85,8 @@ PAGE:00000001400865B2     BufferOverflowStackIoctlHandler endp
 PAGE:00000001400865B2
 PAGE:00000001400865B2     ; ---------------------------------------------------------------------------
 </code></pre><p><img src="/img/hevd-stack-buffer-overflow-ioctl-handler-decompiled.PNG" alt="hevd-stack-buffer-overflow-ioctl-handler-decompiled" title="hevd-stack-buffer-overflow-ioctl-handler-decompiled"></p>
-<p>The only thing this function does is extract the pointer to user&rsquo;s input buffer from the current <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/i-o-stack-locations">I/O stack location</a> and its length from the <code>IRP</code> which were copied as-is by the <code>I/O</code> manager from the user-mode client application to the <code>nt!_IRP</code> and its accompanying <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ns-wdm-_io_stack_location">nt!_IO_STACK_LOCATION</a> structure(s) without any form of checking and call <code>HEVD!TriggerBufferOverflowStack()</code> routine with the pointer to user input buffer and its size that were just extracted as arguments.</p>
-<p>It looks as though the hunt is finally over as we descend upon the function which is helpfully named <code>TriggerBufferOverflowStack()</code>:</p>
+<p>The only thing this function does is extract the pointer to user&rsquo;s input buffer from the current <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/i-o-stack-locations">I/O stack location</a> and its length from the <code>IRP</code> which were copied as-is by the <code>I/O</code> manager from the user-mode client application to the <code>nt!_IRP</code> and its accompanying <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ns-wdm-_io_stack_location">nt!_IO_STACK_LOCATION</a> structure(s) without any form of checking and call <code>HEVD!TriggerBufferOverflowStack()</code> routine with the extracted values as arguments.</p>
+<p>It looks as though the hunt is finally over as we descend upon the function which is so helpfully named <code>TriggerBufferOverflowStack()</code>:</p>
 <pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">PAGE:00000001400865B4     ; =============== S U B R O U T I N E =======================================
 PAGE:00000001400865B4
 PAGE:00000001400865B4
@@ -184,7 +184,7 @@ PAGE:00000001400866BF 000                 retn
 PAGE:00000001400866BF     ; } // starts at 1400865B4
 PAGE:00000001400866BF     TriggerBufferOverflowStack endp
 </code></pre><p><img src="/img/hevd-stack-buffer-overflow-decompiled.PNG" alt="hevd-stack-buffer-overflow-decompiled" title="hevd-stack-buffer-overflow-decompiled"></p>
-<p>The issue here(highlighted in red for your reading pleasure) is apparent. On one hand, we have a local variable called <code>Dst</code> and it is an array of type <code>CHAR</code> consisting of <code>0n2048/0x800</code> elements occupying <code>0n2048 * sizeof(CHAR) = 0n2048/0x800</code> bytes on the stack and on the other hand we have an unsafe routine such as <a href="https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/memmove-wmemmove?view=msvc-170">memmove()</a> taking attacker-controlled input data and size as arguments and copying it to the buffer on the stack without any form of size validation thus making it possible to overflow its bounds and corrupt adjacent data on the stack.</p>
+<p>The issue here(highlighted in red for your reading pleasure) is apparent. On one hand, we have a local variable called <code>Dst</code> and it is an array of type <code>CHAR</code> consisting of <code>0n2048/0x800</code> elements occupying <code>0n2048 * sizeof(CHAR) = 0n2048/0x800</code> bytes on the stack and on the other hand, we have an unsafe routine such as <a href="https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/memmove-wmemmove?view=msvc-170">memmove()</a> taking attacker-controlled input data and size as arguments and copying it to the buffer on the stack without any form of size validation thus making it possible to overflow its bounds and corrupt adjacent data on the stack.</p>
 <p>This bug appears to be exploitable in practice too because the input data and the input size both appear to be completely attacker-controlled without any constraints.</p>
 <h2 id="exploitation-and-stabilization">Exploitation and Stabilization</h2>
 <p>Our objective is exploiting this vulnerability to achieve arbitrary code execution in kernel-mode and we previously said that we can corrupt data on the stack using the vulnerability but how does corrupting random stack data help us in any way except maybe causing a glorious bugcheck on the device?</p>
@@ -210,7 +210,7 @@ PAGE:00000001400866BF     TriggerBufferOverflowStack endp
 <li>Lock the payload pages into physical memory thus ensuring that they cannot be written to the pagefile.</li>
 </ul>
 <ol start="4">
-<li>How do we know how much stack data to corrupt to cause an overwrite of the <code>retaddr</code> and not any other arbitrary data on the stack which may lead to system instability?</li>
+<li>How do we know how much stack data to corrupt to cause a precise overwrite of the <code>retaddr</code> and not any other arbitrary data on the stack which may lead to system instability?</li>
 </ol>
 <ul>
 <li>We must first draw the complete stack layout with the help of the disassembly shown above in order to understand this.
@@ -220,10 +220,10 @@ Note that the offsets here are relative to the stack base containing the <code>r
 One thing to mention here is that we irreparably trash three saved non-volatile register contents on the stack(<code>R12</code>, <code>R14</code>, and <code>R15</code>) to get to the <code>retaddr</code> which is not ideal for stability but also unavoidable in our case.</li>
 </ul>
 <ol start="5">
-<li>How do we pick up the original control-flow and return back to user-mode after our payload finishes executing now that we have utterly messed up the stack?</li>
+<li>How do we pick up the original control flow and return back to user-mode after our payload finishes executing now that we have utterly messed up the stack?</li>
 </ol>
 <ul>
-<li>There are quite a few approaches to deal with kernel payload recovery, however, in order to understand the most appropriate approach for our case(and also perhaps the easiest), we need to consult the disassembly of the caller of <code>HEVD!TriggerBufferOverflowStack()</code> and see the location where our callee would have normally returned had the control-flow not been hijacked to execute our payload.
+<li>There are quite a few approaches to deal with kernel payload recovery, however, in order to understand the most appropriate approach for our case(and also perhaps the easiest), we need to consult the disassembly of the caller of <code>HEVD!TriggerBufferOverflowStack()</code> and see the location where our callee would have normally returned had the control flow not been hijacked to execute our payload.
 <img src="/img/hevd-stack-buffer-overflow-recovery-stub.PNG" alt="hevd-stack-buffer-overflow-recovery-stub" title="hevd-stack-buffer-overflow-recovery-stub">
 Once we identify that, we can append the code stub(highlighted in red) to our payload so that we can execute it ourselves and return out of kernel-mode without crashing the system.</li>
 </ul>
