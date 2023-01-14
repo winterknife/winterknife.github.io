@@ -85,7 +85,7 @@ PAGE:00000001400865B2     BufferOverflowStackIoctlHandler endp
 PAGE:00000001400865B2
 PAGE:00000001400865B2     ; ---------------------------------------------------------------------------
 </code></pre><p><img src="/img/hevd-stack-buffer-overflow-ioctl-handler-decompiled.PNG" alt="hevd-stack-buffer-overflow-ioctl-handler-decompiled" title="hevd-stack-buffer-overflow-ioctl-handler-decompiled"></p>
-<p>The only thing this function does is extract the pointer to user&rsquo;s input buffer from the current <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/i-o-stack-locations">I/O stack location</a> and its length from the <code>IRP</code> which were copied as-is by the <code>I/O</code> manager from the user-mode client application to the <code>nt!_IRP</code> and its accompanying <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ns-wdm-_io_stack_location">nt!_IO_STACK_LOCATION</a> structure(s) without any form of checking and call <code>HEVD!TriggerBufferOverflowStack()</code> routine with the extracted values as arguments.</p>
+<p>The only thing this function does is extract the pointer to user&rsquo;s input buffer and its length from the current <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/i-o-stack-locations">I/O stack location</a> which were copied as-is by the <code>I/O</code> manager from the user-mode client application to the <code>nt!_IRP</code> and its accompanying <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ns-wdm-_io_stack_location">nt!_IO_STACK_LOCATION</a> structure(s) without any form of checking and call <code>HEVD!TriggerBufferOverflowStack()</code> routine with the extracted values as arguments.</p>
 <p>It looks as though the hunt is finally over as we descend upon the function which is so helpfully named <code>TriggerBufferOverflowStack()</code>:</p>
 <pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">PAGE:00000001400865B4     ; =============== S U B R O U T I N E =======================================
 PAGE:00000001400865B4
@@ -223,14 +223,11 @@ One thing to mention here is that we irreparably trash three saved non-volatile 
 <li>How do we pick up the original control flow and return back to user-mode after our payload finishes executing now that we have utterly messed up the stack?</li>
 </ol>
 <ul>
-<li>There are quite a few approaches to deal with kernel payload recovery, however, in order to understand the most appropriate approach for our case(and also perhaps the easiest), we need to consult the disassembly of the caller of <code>HEVD!TriggerBufferOverflowStack()</code> and see the location where our callee would have normally returned had the control flow not been hijacked to execute our payload.
-<img src="/img/hevd-stack-buffer-overflow-recovery-stub.PNG" alt="hevd-stack-buffer-overflow-recovery-stub" title="hevd-stack-buffer-overflow-recovery-stub">
-Once we identify that, we can append the code stub(highlighted in red) to our payload so that we can execute it ourselves and return out of kernel-mode without crashing the system.</li>
+<li>There are quite a few approaches to deal with kernel-mode payload recovery or transitioning from <code>ring 0</code> to <code>ring 3</code> after successful exploitation, however, it is hard to find a universal method that is equally reliable or is the most optimal for every scenario. Ergo, we will again discuss them in detail on a case-by-case basis.</li>
 </ul>
 <h3 id="case-i">Case I</h3>
 <ul>
 <li><code>Intel OS Guard</code>/<code>SMEP</code> not present, <code>KVA Shadow</code>/<code>KPTI</code> disabled</li>
-<li>Easiest case to deal with so we will start with this one(baby steps)</li>
 <li>Target
 <ul>
 <li><code>Windows 7</code> <code>OS</code> or <code>OS</code> &gt; <code>Windows 7</code> but running on older <code>Intel</code> hardware(μarch &lt; <code>Ivy Bridge</code>)</li>
@@ -243,7 +240,13 @@ Once we identify that, we can append the code stub(highlighted in red) to our pa
 </ul>
 </li>
 </ul>
-<p>There is nothing further to explain here as there are no kernel security mitigations to defeat. Here is a screenshot demonstrating successful exploitation of this vulnerability on a fully updated <code>Windows 7</code> system with a modified <a href="https://github.com/winterknife/PINKPANTHER">PINKPANTHER</a> payload to achieve <code>Local Privilege Escalation(LPE)</code>:</p>
+<p>This is the easiest case to deal with as there are no kernel security mitigations to defeat, so we will start with this one(baby steps!)</p>
+<h4 id="kernel-mode-payload-recovery">Kernel-mode Payload Recovery</h4>
+<p>In order to understand the most optimal approach for our case(and also perhaps the easiest), we need to consult the disassembly of the caller of <code>HEVD!TriggerBufferOverflowStack()</code> and see the location where our callee would have normally returned had the control flow not been hijacked to execute our payload.</p>
+<p><img src="/img/hevd-stack-buffer-overflow-recovery-stub.PNG" alt="hevd-stack-buffer-overflow-recovery-stub" title="hevd-stack-buffer-overflow-recovery-stub"></p>
+<p>Once we identify that, we can append the code stub(highlighted in red) to our payload so that we can execute it ourselves and return to <code>IRP_MJ_DEVICE_CONTROL</code> <code>IRP</code> handler which is eventually going to return out of kernel-mode without crashing the system.</p>
+<h4 id="demo">Demo</h4>
+<p>Here is a screenshot demonstrating successful exploitation of this vulnerability on a fully updated <code>Windows 7</code> system with a modified <a href="https://github.com/winterknife/PINKPANTHER">PINKPANTHER</a> payload to achieve <code>Local Privilege Escalation(LPE)</code>:</p>
 <p><img src="/img/hevd-stack-buffer-overflow-lpe-poc.PNG" alt="hevd-stack-buffer-overflow-lpe-poc" title="hevd-stack-buffer-overflow-lpe-poc"></p>
 <h2 id="patch-analysis">Patch Analysis</h2>
 <p>So what was the fix? We can load the &ldquo;secure&rdquo; version of the binary into <code>IDA Pro</code> to find out.</p>
